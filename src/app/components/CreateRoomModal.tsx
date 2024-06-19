@@ -18,7 +18,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     // Make sure to replace 'your-api-endpoint' with the actual endpoint
-    const response = await fetch("https://rare-keys-cheat.loca.lt/api/create-room", {
+    const response = await fetch("http://localhost:8080/api/create-room", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -13,14 +13,29 @@ type MainComponentProps = {
 };
 
 const getOrCreateUser = async (id: string) => {
-  const dbUser = await fetch("hui/get-user");
-  return dbUser;
+  const response  = await fetch("http://localhost:8080/api/getOrCreateTGUser", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id
+    }),
+  });
+    const dbUser = await response.json();
+    console.log("KAKOGO HUYA ONO VYPOLNJAETSA STOLKO RAZ")
+    return dbUser;
 };
 
 export const MainComponent: React.FC<MainComponentProps> = ({ header, footer }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [user, setUser] = useState<TGUser | null>(null);
+
+  getOrCreateUser("1").then(dbUser => {
+    console.log(dbUser);
+  });
+
 
   useEffect(() => {
     function initTg() {
@@ -30,24 +45,16 @@ export const MainComponent: React.FC<MainComponentProps> = ({ header, footer }) 
         setUser(user);
         return;
       }
-
       setTimeout(initTg, 500);
     }
-
     initTg();
   }, []);
 
   useEffect(() => {
-    if (!user) return;
-    const dbUser = getOrCreateUser("1"); // errors
-    // .then(user => set)
-  }, [user]);
-
-  useEffect(() => {
-    fetch("https://major-worms-tie.loca.lt/api/rooms")
+    fetch("http://localhost:8080/api/rooms")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setRooms(data);
       })
       .catch((error) => console.error("Error fetching rooms:", error));

@@ -10,7 +10,6 @@ import Link from "next/link";
 import { Button } from "../ui/Button";
 import CreateRoomModal from "../CreateRoomModal";
 
-export { Header };
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,14 +50,15 @@ export default function Header() {
           >
             Leaderboard
           </Link>
-        </nav>
-        <div className="flex items-center space-x-4">
+        </nav>        
+        <div className="flex items-center space-x-4">        
           <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)}>
             {isDarkMode ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
           </Button>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <MenuIcon className="w-6 h-6" />
           </Button>
+          {/* <div className="md:block text-sm font-medium">{TGUser}</div> */}
         </div>
       </div>
       <CreateRoomModal isOpen={isModalOpen} onClose={toggleModal} />
