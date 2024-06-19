@@ -3,18 +3,17 @@
  * @see https://v0.dev/t/dXi1GL68ypM
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-"use client"
+"use client";
 
-import { SVGProps, useState } from "react"
-import Link from "next/link"
+import { SVGProps, useState } from "react";
+import Link from "next/link";
 import { Button } from "./components/ui/Button";
-import CreateRoomModal from './createRoomModal';
-
+import CreateRoomModal from "./createRoomModal";
 
 export { Header };
 export default function Header() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleModal = () => {
@@ -26,8 +25,9 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between">
         <div className="text-2xl font-bold">TapTap Casino</div>
         <nav
-          className={`flex flex-col gap-4 absolute top-16 left-0 w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-b-lg shadow-lg z-10 ${isMenuOpen ? "block" : "hidden"
-            } md:flex md:flex-row md:static md:bg-transparent md:p-0 md:shadow-none md:rounded-none`}
+          className={`flex flex-col gap-4 absolute top-16 left-0 w-full bg-gray-100 dark:bg-gray-800 p-4 rounded-b-lg shadow-lg z-10 ${
+            isMenuOpen ? "block" : "hidden"
+          } md:flex md:flex-row md:static md:bg-transparent md:p-0 md:shadow-none md:rounded-none`}
         >
           <Link
             href="#"
@@ -53,7 +53,7 @@ export default function Header() {
           </Link>
         </nav>
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)} >
+          <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)}>
             {isDarkMode ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
           </Button>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -63,11 +63,8 @@ export default function Header() {
       </div>
       <CreateRoomModal isOpen={isModalOpen} onClose={toggleModal} />
     </header>
-
-  )
+  );
 }
-
-
 
 function MenuIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -87,9 +84,8 @@ function MenuIcon(props: SVGProps<SVGSVGElement>) {
       <line x1="4" x2="20" y1="6" y2="6" />
       <line x1="4" x2="20" y1="18" y2="18" />
     </svg>
-  )
+  );
 }
-
 
 function MoonIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -107,9 +103,8 @@ function MoonIcon(props: SVGProps<SVGSVGElement>) {
     >
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
-  )
+  );
 }
-
 
 function SunIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -135,5 +130,5 @@ function SunIcon(props: SVGProps<SVGSVGElement>) {
       <path d="m6.34 17.66-1.41 1.41" />
       <path d="m19.07 4.93-1.41 1.41" />
     </svg>
-  )
+  );
 }

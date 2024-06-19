@@ -3,21 +3,17 @@
  * @see https://v0.dev/t/dXi1GL68ypM
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-"use client"
+"use client";
 
-import { SVGProps, useState } from "react"
-import Link from "next/link"
-import { Card, CardContent } from './components/ui/Card';
+import { SVGProps, useState } from "react";
+import Link from "next/link";
+import { Card, CardContent } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
-
 
 export { Component };
 export default function Component() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-
-
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className={`flex flex-col min-h-screen ${isDarkMode ? "dark" : ""}`}>
@@ -52,7 +48,7 @@ export default function Component() {
             </Link>
           </nav>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)} >
+            <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)}>
               {isDarkMode ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
             </Button>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -157,10 +153,10 @@ export default function Component() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-function MenuIcon(props:SVGProps<SVGSVGElement>) {
+function MenuIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -178,11 +174,10 @@ function MenuIcon(props:SVGProps<SVGSVGElement>) {
       <line x1="4" x2="20" y1="6" y2="6" />
       <line x1="4" x2="20" y1="18" y2="18" />
     </svg>
-  )
+  );
 }
 
-
-function MoonIcon(props:SVGProps<SVGSVGElement>) {
+function MoonIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -198,11 +193,10 @@ function MoonIcon(props:SVGProps<SVGSVGElement>) {
     >
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
-  )
+  );
 }
 
-
-function SunIcon(props:SVGProps<SVGSVGElement>) {
+function SunIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -226,5 +220,5 @@ function SunIcon(props:SVGProps<SVGSVGElement>) {
       <path d="m6.34 17.66-1.41 1.41" />
       <path d="m19.07 4.93-1.41 1.41" />
     </svg>
-  )
+  );
 }
