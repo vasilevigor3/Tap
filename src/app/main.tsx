@@ -1,42 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "./components/ui/Card";
+import { Room } from "./types/Room";
 import { Button } from "./components/ui/Button";
+import { Card, CardContent } from "./components/ui/Card";
+import { pick } from "lodash-es";
+import { TGUser, User } from "./types/TGUser";
 
 type MainComponentProps = {
   header: React.ReactNode;
   footer: React.ReactNode;
 };
 
+const getOrCreateUser = async (id: string) => {
+  const dbUser = await fetch("hui/get-user");
+  return dbUser;
+};
+
 export const MainComponent: React.FC<MainComponentProps> = ({ header, footer }) => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [tg, setTg] = useState(null);
-  // const [TGUser, setTGUser] = useState(null);
-  const [tgUser, setTGUser] = useState<TGUser | null>(null);
+  const [user, setUser] = useState<TGUser | null>(null);
 
   useEffect(() => {
-    console.log("useTelegram");
     function initTg() {
-      if (typeof window !== "undefined" && window.Telegram && window.Telegram.WebApp) {
-        console.log("Telegram WebApp is set");
-        const tgData = window.Telegram.WebApp;
-        setTg(tgData);
-
-        setTGUser(tgData.initDataUnsafe.user);
-      } else {
-        console.log("Telegram WebApp is undefined, retrying…");
-        setTimeout(initTg, 500);
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tgUser: TGUser = window?.Telegram?.WebApp?.initDataUnsafe?.user;
+        const user: User = pick(tgUser, ["id", "username"]);
+        setUser(user);
+        return;
       }
+
+      setTimeout(initTg, 500);
     }
+
     initTg();
   }, []);
 
-  console.log(tgUser);
+  useEffect(() => {
+    if (!user) return;
+    const dbUser = getOrCreateUser("1"); // errors
+    // .then(user => set)
+  }, [user]);
 
   useEffect(() => {
-    fetch("https://rare-keys-cheat.loca.lt/api/rooms")
+    fetch("https://major-worms-tie.loca.lt/api/rooms")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);

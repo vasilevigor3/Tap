@@ -1,10 +1,7 @@
+import Footer from "./components/layout/footer";
+import Header from "./components/layout/header";
 import { MainComponent } from "./main";
-import { Header } from "./header";
-import { Footer } from "./footer";
 
 export default function Root() {
-  return (
-    // <Component />
-    <MainComponent header={<Header />} footer={<Footer />} />
-  );
+  return <MainComponent header={<Header />} footer={<Footer />} />;
 }

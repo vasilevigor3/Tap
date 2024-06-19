@@ -7,8 +7,8 @@
 
 import { SVGProps, useState } from "react";
 import Link from "next/link";
-import { Button } from "./components/ui/Button";
-import CreateRoomModal from "./createRoomModal";
+import { Button } from "../ui/Button";
+import CreateRoomModal from "../CreateRoomModal";
 
 export { Header };
 export default function Header() {

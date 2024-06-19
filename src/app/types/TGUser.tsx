@@ -10,7 +10,9 @@
 // //     };
 // //   }
 
-  interface TGUser {
-        id: number| null;
-        username: string| null;
-  }
+export type User = {
+  id: number | null;
+  username: string | null;
+};
+
+export type TGUser = User & Record<string, unknown>;
