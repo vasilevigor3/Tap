@@ -11,7 +11,7 @@
 // //   }
 
 export type User = {
-  id: number | null;
+  id: string | null;
   username: string | null;
 };
 

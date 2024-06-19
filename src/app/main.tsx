@@ -12,14 +12,15 @@ type MainComponentProps = {
   footer: React.ReactNode;
 };
 
-const getOrCreateUser = async (id: string) => {
+const getOrCreateUser = async (id: string, name: string) => {
   const response  = await fetch("http://localhost:8080/api/getOrCreateTGUser", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      id
+      id,
+      name
     }),
   });
     const dbUser = await response.json();
@@ -32,10 +33,9 @@ export const MainComponent: React.FC<MainComponentProps> = ({ header, footer }) 
   const [rooms, setRooms] = useState<Room[]>([]);
   const [user, setUser] = useState<TGUser | null>(null);
 
-  getOrCreateUser("1").then(dbUser => {
+  getOrCreateUser("243856482","Vasya").then(dbUser => {
     console.log(dbUser);
   });
-
 
   useEffect(() => {
     function initTg() {
