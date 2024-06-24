@@ -1,8 +1,13 @@
 export type Room = {
   id: number;
   roomName: string;
-  players: [Player];
+  playerIds: [number];
   maxPlayers: number;
   bet: number;
-  status: string;
+  ownerId: string;
+  gameType: string;
+  winnerId: string;
+  playersIds: [];
+  isGameStarted: [];
+  isGameFinished: [];
 };

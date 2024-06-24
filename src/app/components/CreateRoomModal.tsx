@@ -3,17 +3,24 @@ import React, { useState } from "react";
 
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
+import { Player } from "../types/Player";
+import { Select } from "./ui/Select";
+import { Room } from "../types/Room";
 
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
+  player: Player | undefined;
+  fetchRooms: () => Promise<void>;
 }
 
-const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) => {
+const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, player,fetchRooms }) => {
   if (!isOpen) return null;
   const [roomName, setRoomName] = useState("");
   const [numPlayers, setNumPlayers] = useState("");
   const [bet, setBet] = useState("");
+  const [gameType, setGameType] = useState("");
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -27,11 +34,14 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
         roomName,
         maxPlayers: parseInt(numPlayers, 10),
         bet: parseFloat(bet),
+        ownerId:player?.id,
+        gameType
       }),
     });
 
     if (response.ok) {
       // Handle success, e.g., close the modal
+      await fetchRooms(); 
       onClose();
     } else {
       // Handle error
@@ -66,6 +76,17 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
             value={bet}
             onChange={(e) => setBet(e.target.value)}
           />
+          <select
+            value={gameType}
+            onChange={(e) => setGameType(e.target.value)}
+            className="text-gray-500 font-bold mb-4"
+          >
+            <option value="" disabled>Select Game Type</option>
+            <option value="roulette">Roulette</option>
+            <option value="poker">Poker</option>
+            <option value="blackjack">Blackjack</option>
+            {/* Add more game types as needed */}
+          </select>
 
           <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md">
             Create

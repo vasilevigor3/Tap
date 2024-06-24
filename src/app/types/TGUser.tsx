@@ -11,8 +11,9 @@
 // //   }
 
 export type User = {
-  id: string | null;
-  username: string | null;
+  id: string ;
+  name: string;
+  playerId: string ;
 };
 
 export type TGUser = User & Record<string, unknown>;
