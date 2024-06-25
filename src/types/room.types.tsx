@@ -23,10 +23,10 @@ export type LeaveRoomProps = {
 };
 
 export type CreateRoomProps = {
-  roomId: number;
+  // roomId: number;
   roomName: string;
   maxPlayers: number;
   bet: number;
-  ownerId: string;
+  ownerId: number;
   gameType: string;
 }

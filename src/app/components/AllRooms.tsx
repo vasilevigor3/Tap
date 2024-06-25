@@ -39,7 +39,7 @@ const LeaveRoomButton = (props: { roomId: number }) => {
 };
 
 
-// 61 is not updated {room.playerIds.length}/{room.maxPlayers} players
+//todo 61 is not updated {room.playerIds.length}/{room.maxPlayers} players
 export const AllRooms = () => {
   const { data: rooms } = api.rooms.getAll.useQuery();
   const filteredRooms = rooms?.filter((room) => !room.isGameStarted);

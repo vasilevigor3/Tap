@@ -12,10 +12,9 @@ interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   player: Player | undefined;
-  fetchRooms: () => Promise<void>;
 }
 
-const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, player, fetchRooms }) => {
+const CreateRoomModal2: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, player }) => {
   if (!isOpen) return null;
   const [roomName, setRoomName] = useState("");
   const [numPlayers, setNumPlayers] = useState("");
@@ -23,33 +22,34 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
   const [gameType, setGameType] = useState("");
   const [rooms, setRooms] = useState<Room[]>([]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const response = await fetch(`${curEnv}/api/create-room`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        roomName,
-        maxPlayers: parseInt(numPlayers, 10),
-        bet: parseFloat(bet),
-        ownerId: player?.id,
-        gameType,
-      }),
-    });
-
-    if (response.ok) {
-      onClose();
-    } else {
-      console.error("Failed to create room");
-    }
-  };
 
 
   const CreateRoomForm = () => {
     const { mutateAsync: createRoom } = api.rooms.create.useMutation();
 
+    const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+
+      if (!player?.id) {
+        console.error("Player ID is undefined");
+        return;
+      }
+
+      const createRoomProps = {
+        roomName,
+        maxPlayers: parseInt(numPlayers, 10),
+        bet: parseFloat(bet),
+        ownerId: player.id, 
+        gameType,
+      };
+      
+      try {
+        createRoom(createRoomProps);
+        onClose();
+      } catch (e) {
+        console.error("Failed to create room", e);
+      }
+    };
 
     return (
       <form onSubmit={handleSubmit}>
@@ -58,6 +58,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
             placeholder="Room Name"
             className="text-gray-500 font-bold mb-4"
             value={roomName}
+            //todo why it is blocking input
             onChange={(e) => setRoomName(e.target.value)}
           />
           <Input
@@ -83,8 +84,6 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
               Select Game Type
             </option>
             <option value="roulette">Roulette</option>
-            <option value="poker">Poker</option>
-            <option value="blackjack">Blackjack</option>
             {/* Add more game types as needed */}
           </select>
 
@@ -110,4 +109,4 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
   );
 };
 
-export default CreateRoomModal;
+export default CreateRoomModal2;
