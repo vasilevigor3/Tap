@@ -3,9 +3,8 @@ import React, { useState } from "react";
 
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
-import { Player } from "../types/Player";
-import { Select } from "./ui/Select";
-import { Room } from "../types/Room";
+import { Player } from "../../types/Player";
+import { Room } from "../../types/room.types";
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -14,7 +13,7 @@ interface CreateRoomModalProps {
   fetchRooms: () => Promise<void>;
 }
 
-const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, player,fetchRooms }) => {
+const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, player, fetchRooms }) => {
   if (!isOpen) return null;
   const [roomName, setRoomName] = useState("");
   const [numPlayers, setNumPlayers] = useState("");
@@ -25,7 +24,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     // Make sure to replace 'your-api-endpoint' with the actual endpoint
-    const response = await fetch("http://localhost:8080/api/create-room", {
+    const response = await fetch("https://modern-women-sit.loca.lt/api/create-room", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,14 +33,14 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
         roomName,
         maxPlayers: parseInt(numPlayers, 10),
         bet: parseFloat(bet),
-        ownerId:player?.id,
-        gameType
+        ownerId: player?.id,
+        gameType,
       }),
     });
 
     if (response.ok) {
       // Handle success, e.g., close the modal
-      await fetchRooms(); 
+      await fetchRooms();
       onClose();
     } else {
       // Handle error
@@ -81,7 +80,9 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
             onChange={(e) => setGameType(e.target.value)}
             className="text-gray-500 font-bold mb-4"
           >
-            <option value="" disabled>Select Game Type</option>
+            <option value="" disabled>
+              Select Game Type
+            </option>
             <option value="roulette">Roulette</option>
             <option value="poker">Poker</option>
             <option value="blackjack">Blackjack</option>

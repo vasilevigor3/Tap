@@ -11,3 +11,8 @@ export type Room = {
   isGameStarted: [];
   isGameFinished: [];
 };
+
+export type JoinRoomProps = {
+  playerIds: number[];
+  roomId: number;
+};

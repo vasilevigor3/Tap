@@ -5,11 +5,11 @@
  */
 "use client";
 
-import { SVGProps, useState, useEffect} from "react";
+import { SVGProps, useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "../ui/Button";
 import CreateRoomModal from "../CreateRoomModal";
-import { Player } from "../../types/Player";
+import { Player } from "../../../types/Player";
 
 interface HeaderProps {
   fetchRooms: () => Promise<void>;
@@ -26,22 +26,22 @@ export default function Header({ fetchRooms }: HeaderProps) {
   };
 
   const getOrCreatePlayer = async (id: string) => {
-    const response  = await fetch("http://localhost:8080/api/getOrCreatePlayer", {
+    const response = await fetch("https://modern-women-sit.loca.lt/api/getOrCreatePlayer", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id
+        id,
       }),
     });
-      const dbUser = await response.json();
-      console.log("KAKOGO HUYA ONO VYPOLNJAETSA STOLKO RAZ")
-      return dbUser;
+    const dbUser = await response.json();
+    console.log("KAKOGO HUYA ONO VYPOLNJAETSA STOLKO RAZ");
+    return dbUser;
   };
 
   useEffect(() => {
-    getOrCreatePlayer("243856482").then(player => {
+    getOrCreatePlayer("243856482").then((player) => {
       setPlayer(player);
     });
   }, []);
@@ -77,8 +77,8 @@ export default function Header({ fetchRooms }: HeaderProps) {
           >
             Leaderboard
           </Link>
-        </nav>        
-        <div className="flex items-center space-x-4">        
+        </nav>
+        <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" onClick={() => setIsDarkMode(!isDarkMode)}>
             {isDarkMode ? <SunIcon className="w-6 h-6" /> : <MoonIcon className="w-6 h-6" />}
           </Button>
@@ -88,7 +88,7 @@ export default function Header({ fetchRooms }: HeaderProps) {
           <div className="md:block text-sm font-medium">{player?.name}</div>
         </div>
       </div>
-      <CreateRoomModal isOpen={isModalOpen} onClose={toggleModal} player={player} fetchRooms={fetchRooms}/>
+      <CreateRoomModal isOpen={isModalOpen} onClose={toggleModal} player={player} fetchRooms={fetchRooms} />
     </header>
   );
 }

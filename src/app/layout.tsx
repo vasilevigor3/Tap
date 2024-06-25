@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./styles/globals.css";
+import ReactQueryProvider from "./react-query/Provider";
+import Footer from "./components/layout/Footer";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "TapTap Casino",
@@ -14,9 +17,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        {/* <script src="https://telegram.org/js/telegram-web-app.js"   /> */}
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
-      <body>{children}</body>
+      <body>
+        <ReactQueryProvider>
+          {/* <Header /> */}
+          {children}
+        </ReactQueryProvider>
+        <Footer />
+      </body>
     </html>
   );
 }
