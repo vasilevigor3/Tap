@@ -25,7 +25,6 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Make sure to replace 'your-api-endpoint' with the actual endpoint
     const response = await fetch(`${curEnv}/api/create-room`, {
       method: "POST",
       headers: {
@@ -41,11 +40,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
     });
 
     if (response.ok) {
-      // Handle success, e.g., close the modal
-      // await fetchRooms();
       onClose();
     } else {
-      // Handle error
       console.error("Failed to create room");
     }
   };
