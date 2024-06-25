@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./styles/globals.css";
 import ReactQueryProvider from "./react-query/Provider";
 import Footer from "./components/layout/Footer";
+import Header from "./components/layout/Header";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({
       </head>
       <body>
         <ReactQueryProvider>
-          {/* <Header /> */}
+          <Header />
           {children}
         </ReactQueryProvider>
         <Footer />

@@ -5,6 +5,8 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Player } from "../../types/Player";
 import { Room } from "../../types/room.types";
+import { curEnv } from "@/constants/env";
+import { api } from "../react-query/routers";
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -24,7 +26,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     // Make sure to replace 'your-api-endpoint' with the actual endpoint
-    const response = await fetch("https://modern-women-sit.loca.lt/api/create-room", {
+    const response = await fetch(`${curEnv}/api/create-room`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,7 +42,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
 
     if (response.ok) {
       // Handle success, e.g., close the modal
-      await fetchRooms();
+      // await fetchRooms();
       onClose();
     } else {
       // Handle error
@@ -48,12 +50,13 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
     }
   };
 
-  return (
-    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50 ">
-      <div className="bg-white p-6 rounded-lg shadow-lg ">
-        <div className="flex justify-end"></div>
-        <h2 className="text-gray-500 font-bold mb-4">Create Room Form</h2>
-        <form onSubmit={handleSubmit}>
+
+  const CreateRoomForm = () => {
+    const { mutateAsync: leaveRoom } = api.rooms.create.useMutation();
+
+
+    return (
+      <form onSubmit={handleSubmit}>
           <Input
             type="text"
             placeholder="Room Name"
@@ -96,6 +99,16 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, play
             Close
           </Button>
         </form>
+    )
+  }
+
+  
+  return (
+    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50 ">
+      <div className="bg-white p-6 rounded-lg shadow-lg ">
+        <div className="flex justify-end"></div>
+        <h2 className="text-gray-500 font-bold mb-4">Create Room Form</h2>
+        <CreateRoomForm />
       </div>
     </div>
   );

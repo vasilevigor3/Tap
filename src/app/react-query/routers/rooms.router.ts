@@ -2,7 +2,7 @@
 
 import { curEnv } from "@/constants/env";
 import { MutationOptions, useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { JoinRoomProps, Room } from "@/types/room.types";
+import type { JoinRoomProps,LeaveRoomProps,CreateRoomProps, Room } from "@/types/room.types";
 
 export const rooms = {
   getAll: {
@@ -12,6 +12,7 @@ export const rooms = {
         queryFn: async () => {
           const response = await fetch(`${curEnv}/api/getAllRooms`);
           const data = await response.json();
+          return data;
         },
         ...options,
       }),
@@ -36,9 +37,9 @@ export const rooms = {
   },
 
   leave: {
-    useMutation: (options?: MutationOptions<Room, Error, JoinRoomProps>) =>
-      useMutation<Room, Error, JoinRoomProps>({
-        mutationFn: async (props: JoinRoomProps) => {
+    useMutation: (options?: MutationOptions<Room, Error, LeaveRoomProps>) =>
+      useMutation<Room, Error, LeaveRoomProps>({
+        mutationFn: async (props: LeaveRoomProps) => {
           const response = await fetch(`${curEnv}/api/leave-room`, {
             method: "POST",
             headers: {
@@ -52,4 +53,23 @@ export const rooms = {
         ...options,
       }),
   },
+
+  create: {
+    useMutation: (options?: MutationOptions<Room, Error, CreateRoomProps>) =>
+      useMutation<Room, Error, CreateRoomProps>({
+        mutationFn: async (props: CreateRoomProps) => {
+          const response = await fetch(`${curEnv}/api/create-room`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(props),
+          });
+          const roomLeft: Room = await response.json();
+          return roomLeft;
+        },
+        ...options,
+      }),
+  },
+
 };
