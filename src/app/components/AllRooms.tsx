@@ -4,7 +4,6 @@ import { Button } from "./ui/Button";
 import { Card, CardContent } from "./ui/Card";
 import { api } from "../react-query/routers/";
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 
 
 
@@ -34,7 +33,6 @@ const JoinRoomButton = (props: { roomId: number, }) => {
   const { data: player } = api.players.getOrCreate(user?.id);
   const { roomId } = props;
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const handleJoinRoom = async () => {
     if (player && player.id) {
@@ -47,7 +45,7 @@ const JoinRoomButton = (props: { roomId: number, }) => {
           }
         });
         if (response.isGameStarted) {
-          navigate(`/gamearea/${props.roomId}`);
+          //TODO REDIRECT
         }
       } catch (error) {
         console.error("Failed to join room", error);

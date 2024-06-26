@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { Player } from "../../types/Player";
-import { Room } from "../../types/room.types";
 import { api } from "../react-query/routers";
 import { useQueryClient } from '@tanstack/react-query';
 
