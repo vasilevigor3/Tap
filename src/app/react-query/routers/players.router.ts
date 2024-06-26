@@ -19,10 +19,10 @@ export const players = {
 
 export const playerIds = {
   // Метод getOrCreate использует хук useQuery для получения или создания игрока
-  getPlayersByIds: (playerIds: [string] | undefined, options?: UseQueryOptions<Player, Error>) =>
-    useQuery<Player, Error>({
+  getPlayersByIds: (playerIds: [string] | undefined, options?: UseQueryOptions<Player | undefined, Error>) =>
+    useQuery<Player | undefined, Error>({
       queryKey: ["playerIds", playerIds],
-      queryFn: async () => await getPlayersByIds(playerIds!),
+      queryFn: async () => playerIds && (await getPlayersByIds(playerIds)),
       enabled: !!playerIds, // Запускать запрос только если userId определен
       ...options,
     }),
