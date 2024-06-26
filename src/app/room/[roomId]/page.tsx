@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/app/components/ui/Button";
+import { api } from "@/app/react-query/routers";
 
 //todo plyers fetch from get room
 // setrouletteFinneshed(true); 21
@@ -9,10 +10,19 @@ import { Button } from "@/app/components/ui/Button";
 // start auto game 3.2.1...
 const players = ["Ryan Gosling", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6", "Player 7", "Player 8"];
 
-const GameAreaPage = () => {
+type PageProps = {
+  params: {
+    roomId: string;
+  };
+};
+
+const GameAreaPage = (props: PageProps) => {
+  const roomId = props.params.roomId;
   const [winner, setWinner] = useState<string | null>(null);
   const [rouletteActive, setRouletteActive] = useState(false);
   const [rouletteFinneshed, setrouletteFinneshed] = useState(false);
+
+  const { data: room } = api.rooms.getById.useQuery(roomId);
 
   const startRoulette = () => {
     setRouletteActive(true);

@@ -2,9 +2,22 @@
 
 import { curEnv } from "@/constants/env";
 import { MutationOptions, useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { JoinRoomProps,LeaveRoomProps,CreateRoomProps, Room } from "@/types/room.types";
+import type { JoinRoomProps, LeaveRoomProps, CreateRoomProps, Room } from "@/types/room.types";
 
 export const rooms = {
+  getById: {
+    useQuery: (roomId: string, options?: UseQueryOptions<Room, Error>) =>
+      useQuery<Room, Error>({
+        queryKey: ["rooms", roomId],
+        queryFn: async () => {
+          const response = await fetch(`${curEnv}/api/room/${roomId}`);
+          const data = await response.json();
+          return data;
+        },
+        ...options,
+      }),
+  },
+
   getAll: {
     useQuery: (options?: UseQueryOptions<void, Error, Room[]>) =>
       useQuery<void, Error, Room[]>({
@@ -71,5 +84,4 @@ export const rooms = {
         ...options,
       }),
   },
-
 };
