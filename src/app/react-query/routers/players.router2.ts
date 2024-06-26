@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 // import { Player } from "@/types/TGUser";
 import { Player } from "@/types/Player";
 import { curEnv } from "@/constants/env";
@@ -8,10 +8,10 @@ import { curEnv } from "@/constants/env";
 // Объект players будет содержать все взаимодействия с данными игроков
 export const players = {
   // Метод getOrCreate использует хук useQuery для получения или создания игрока
-  getOrCreate: (userId: string | undefined, options?: UseQueryOptions<Player, Error>) => 
+  getOrCreate: (userId: string | undefined, options?: UseQueryOptions<Player, Error>) =>
     useQuery<Player, Error>({
-      queryKey: ['player', userId],
-      queryFn: () => fetchOrCreatePlayer(userId!),
+      queryKey: ["player", userId],
+      queryFn: async () => await fetchOrCreatePlayer(userId!),
       enabled: !!userId, // Запускать запрос только если userId определен
       ...options,
     }),
@@ -28,7 +28,7 @@ async function fetchOrCreatePlayer(userId: string): Promise<Player> {
   });
 
   if (!response.ok) {
-    throw new Error('Network response was not ok');
+    throw new Error("Network response was not ok");
   }
 
   return response.json();

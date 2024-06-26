@@ -3,9 +3,8 @@
 import { Button } from "./ui/Button";
 import { Card, CardContent } from "./ui/Card";
 import { api } from "../react-query/routers/";
-import { useQueryClient } from '@tanstack/react-query';
-
-
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 //todo when room is full - open GameArea
 // const JoinRoomButton = (props: { roomId: number, }) => {
@@ -27,33 +26,21 @@ import { useQueryClient } from '@tanstack/react-query';
 //   );
 // };
 
-const JoinRoomButton = (props: { roomId: number, }) => {
-  const { mutateAsync: joinRoom } = api.rooms.join.useMutation();
+const JoinRoomButton = (props: { roomId: number }) => {
+  const router = useRouter();
+  const { mutateAsync: joinRoom } = api.rooms.join.useMutation({
+    onSuccess: (roomJoined) => {
+      if (!roomJoined.isGameStarted) return;
+      router.push(`/room/${roomJoined.roomId}`);
+    },
+  });
   const { data: user } = api.users.getOrCreate.useQuery();
   const { data: player } = api.players.getOrCreate(user?.id);
   const { roomId } = props;
-  const queryClient = useQueryClient();
 
   const handleJoinRoom = async () => {
-    if (player && player.id) {
-      try {
-        const response = await joinRoom({ roomId, playerIds: [player.id] }, {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ['rooms'],
-            })
-          }
-        });
-        if (response.isGameStarted) {
-          console.log("egor kak redirect sdelat?")
-          //TODO REDIRECT
-        }
-      } catch (error) {
-        console.error("Failed to join room", error);
-      }
-    } else {
-      console.error("Player data is not available");
-    }
+    if (!player?.id) return;
+    await joinRoom({ roomId, playerIds: [player.id] });
   };
 
   return (
@@ -85,8 +72,7 @@ const JoinRoomButton = (props: { roomId: number, }) => {
 //   );
 // };
 
-
-const LeaveRoomButton = (props: { roomId: number, }) => {
+const LeaveRoomButton = (props: { roomId: number }) => {
   const { mutateAsync: leaveRoom } = api.rooms.leave.useMutation();
   const { data: user } = api.users.getOrCreate.useQuery();
   const { data: player } = api.players.getOrCreate(user?.id);
@@ -96,13 +82,16 @@ const LeaveRoomButton = (props: { roomId: number, }) => {
   const handleLeaveRoom = async () => {
     if (player && player.id) {
       try {
-        await leaveRoom({ roomId, playerIds: [player.id] }, {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ['rooms'],
-            })
+        await leaveRoom(
+          { roomId, playerIds: [player.id] },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({
+                queryKey: ["rooms"],
+              });
+            },
           }
-        });
+        );
         // TODO: Обработайте удачный выход из комнаты (например, обновление UI или переадресация)
       } catch (error) {
         console.error("Failed to leave room", error);

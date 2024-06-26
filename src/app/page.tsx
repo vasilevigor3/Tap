@@ -5,17 +5,13 @@ import { api } from "./react-query/routers";
 
 const HomePage = () => {
   const { data: user, isLoading: userLoading } = api.users.getOrCreate.useQuery();
-  // const { isPending } = api.players.getOrCreate.useQuery(user?.id);
   const { isPending } = api.players.getOrCreate(user?.id);
-
 
   if (userLoading) return <div>Loading...</div>;
 
   const connectWallet = async () => {
     const userId = user?.id;
     if (!userId) return;
-    // const player = await mutateAsync(userId);
-    // console.log(player)
   };
 
   return (
