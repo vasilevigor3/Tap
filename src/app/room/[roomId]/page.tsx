@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/app/components/ui/Button";
 import { api } from "@/app/react-query/routers";
+import classNames from "classnames";
 
 //todo plyers fetch from get room
 // setrouletteFinneshed(true); 21
@@ -50,9 +51,9 @@ const GameAreaPage = (props: PageProps) => {
             {players.map((player, index) => (
               <motion.div
                 key={index}
-                className={`w-40 h-10 flex items-center justify-center text-white rounded-lg ${
-                  winner === player ? "bg-gray-500" : "bg-[#262626]"
-                }`}
+                className={classNames("w-40 h-10 flex items-center justify-center text-white rounded-lg bg-gray-500", {
+                  "bg-[red]": winner === player,
+                })}
                 animate={rouletteActive ? { backgroundColor: ["#1a1a1a", "#888", "#1a1a1a"] } : {}}
                 transition={generateRandomTransition()}
               >
