@@ -45,6 +45,7 @@ const JoinRoomButton = (props: { roomId: number, }) => {
           }
         });
         if (response.isGameStarted) {
+          console.log("egor kak redirect sdelat?")
           //TODO REDIRECT
         }
       } catch (error) {
