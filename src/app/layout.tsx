@@ -18,15 +18,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* <script src="https://telegram.org/js/telegram-web-app.js"   /> */}
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
       <body>
         <ReactQueryProvider>
           <Header />
           {children}
+          <Footer />
         </ReactQueryProvider>
-        <Footer />
       </body>
     </html>
   );

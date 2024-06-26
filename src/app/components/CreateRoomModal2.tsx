@@ -45,6 +45,8 @@ const CreateRoomModal2: React.FC<CreateRoomModalProps> = ({ isOpen, onClose, pla
       
       try {
         createRoom(createRoomProps);
+        //todo why it don't close
+        //todo how to fetch rooms after modal closing
         onClose();
       } catch (e) {
         console.error("Failed to create room", e);

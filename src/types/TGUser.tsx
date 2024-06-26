@@ -28,6 +28,7 @@ export type Player = {
   wonGamesIds: number[];
 };
 
+//TODO: huli zdes i room i player?
 export type Room = {
   id: number;
   roomName: string;

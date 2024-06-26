@@ -5,7 +5,8 @@ import { api } from "./react-query/routers";
 
 const HomePage = () => {
   const { data: user, isLoading: userLoading } = api.users.getOrCreate.useQuery();
-  const { isPending } = api.players.getOrCreate.useQuery(user?.id);
+  // const { isPending } = api.players.getOrCreate.useQuery(user?.id);
+  const { isPending } = api.players.getOrCreate(user?.id);
 
 
   if (userLoading) return <div>Loading...</div>;
@@ -23,7 +24,7 @@ const HomePage = () => {
         {isPending && "Connecting..."}
         {!isPending && "Connect Wallet"}
       </button>
-      <AllRooms />;
+      <AllRooms />
     </main>
   );
 };

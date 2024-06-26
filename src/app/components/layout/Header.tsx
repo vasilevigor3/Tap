@@ -18,7 +18,8 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: user } = api.users.getOrCreate.useQuery();
-  const { data: player } = api.players.getOrCreate.useQuery(user?.id);
+  // const { data: player } = api.players.getOrCreate.useQuery(user?.id);
+  const { data: player } = api.players.getOrCreate(user?.id);
   
 
   const toggleModal = () => {
