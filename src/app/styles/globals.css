@@ -3,11 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  html,
+  body {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    height: 100%;
+  }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial,
       "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     display: flex;
     flex-direction: column;
     min-height: 100dvh;
+    @apply bg-gray-950;
   }
 }
