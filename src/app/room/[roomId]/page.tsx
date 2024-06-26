@@ -24,6 +24,13 @@ const GameAreaPage = (props: PageProps) => {
   const [rouletteFinneshed, setrouletteFinneshed] = useState(false);
 
   const { data: room } = api.rooms.getById.useQuery(roomId);
+  
+
+  console.log(room?.playersIds)
+
+  const { data: players } = api.playerIds.getPlayersByIds(room?.playersIds);
+
+  // const players = 
 
   const startRoulette = () => {
     setRouletteActive(true);
