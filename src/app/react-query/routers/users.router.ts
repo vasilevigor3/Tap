@@ -6,7 +6,7 @@ import type { TGUser, User } from "@/types/TGUser";
 
 const mockUser: TGUser = {
   id: "123",
-  username: "Yegor Vasiliev",
+  username: "Ryan Gosling",
 };
 
 export const users = {
