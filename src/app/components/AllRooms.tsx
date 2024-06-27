@@ -6,26 +6,6 @@ import { api } from "../react-query/routers/";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-//todo when room is full - open GameArea
-// const JoinRoomButton = (props: { roomId: number, }) => {
-//   const { mutateAsync: joinRoom } = api.rooms.join.useMutation();
-//   const { data: user } = api.users.getOrCreate.useQuery();
-//   // const { data: player } = api.players.getOrCreate.useQuery(user?.id);
-//   const { data: player } = api.players.getOrCreate(user?.id);
-//   // const { data: player, isLoading, isError } = useGetOrCreatePlayer(user?.id);
-
-//   const { roomId } = props;
-
-//   return (
-//     <Button
-//       className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-colors duration-300"
-//       onClick={() => joinRoom({ roomId, playerIds: [player.id] })}
-//     >
-//       Join
-//     </Button>
-//   );
-// };
-
 const JoinRoomButton = (props: { roomId: number }) => {
   const router = useRouter();
   const { mutateAsync: joinRoom } = api.rooms.join.useMutation({
@@ -46,7 +26,6 @@ const JoinRoomButton = (props: { roomId: number }) => {
   return (
     <Button
       className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-colors duration-300"
-      // Дизейблим кнопку, если нет данных о игроке
       onClick={handleJoinRoom}
       disabled={!player || !player.id}
     >
@@ -54,23 +33,6 @@ const JoinRoomButton = (props: { roomId: number }) => {
     </Button>
   );
 };
-
-// const LeaveRoomButton = (props: { roomId: number }) => {
-//   const { mutateAsync: leaveRoom } = api.rooms.leave.useMutation();
-//   const { data:user } = api.users.getOrCreate.useQuery();
-//   const { data: player } = api.players.getOrCreate.useQuery(user?.id);
-
-//   const { roomId } = props;
-
-//   return (
-//     <Button
-//       className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-colors duration-300"
-//       onClick={() => leaveRoom({ roomId, playerIds: [player.id] })}
-//     >
-//       Leave
-//     </Button>
-//   );
-// };
 
 const LeaveRoomButton = (props: { roomId: number }) => {
   const { mutateAsync: leaveRoom } = api.rooms.leave.useMutation();

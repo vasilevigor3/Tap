@@ -30,3 +30,8 @@ export type CreateRoomProps = {
   ownerId: number;
   gameType: string;
 }
+
+export type FinishGameProps = {
+  roomId: string;
+  playersScores: Record<string, string>[];
+}

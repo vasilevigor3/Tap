@@ -2,7 +2,8 @@
 
 import { curEnv } from "@/constants/env";
 import { MutationOptions, useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import type { JoinRoomProps, LeaveRoomProps, CreateRoomProps, Room } from "@/types/room.types";
+import type { JoinRoomProps, LeaveRoomProps, CreateRoomProps, FinishGameProps, Room } from "@/types/room.types";
+import type { Player } from "@/types/Player";
 
 export const rooms = {
   getById: {
@@ -80,6 +81,24 @@ export const rooms = {
           });
           const roomLeft: Room = await response.json();
           return roomLeft;
+        },
+        ...options,
+      }),
+  },
+
+  finishGame: {
+    useMutation: (options?: MutationOptions<Player, Error, FinishGameProps>) =>
+      useMutation<Player, Error, FinishGameProps>({
+        mutationFn: async (props: FinishGameProps) => {
+          const response = await fetch(`${curEnv}/api/finish-game`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(props),
+          });
+          const winner: Player = await response.json();
+          return winner;
         },
         ...options,
       }),

@@ -36,7 +36,7 @@ export default function Header() {
           } md:flex md:flex-row md:static md:bg-transparent md:p-0 md:shadow-none md:rounded-none`}
         >
           <Link
-            href="#"
+            href="/"
             className="hover:text-gray-600 dark:hover:text-gray-400 transition-colors duration-300"
             prefetch={false}
           >
@@ -63,6 +63,7 @@ export default function Header() {
             <MenuIcon className="w-6 h-6" />
           </Button>
           <div className="md:block text-sm font-medium">{player?.name}</div>
+          <div className="md:block text-sm font-medium">Balance: {player?.balance}</div>
         </div>
       </div>
       <CreateRoomModal isOpen={isModalOpen} onClose={toggleModal} player={player} />
