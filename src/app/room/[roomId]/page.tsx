@@ -9,7 +9,6 @@ import classNames from "classnames";
 // setrouletteFinneshed(true); 21
 // exit button post /finish-game + get /allRooms
 // start auto game 3.2.1...
-const players = ["Ryan Gosling", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6", "Player 7", "Player 8"];
 
 type PageProps = {
   params: {
@@ -24,21 +23,19 @@ const GameAreaPage = (props: PageProps) => {
   const [rouletteFinneshed, setrouletteFinneshed] = useState(false);
 
   const { data: room } = api.rooms.getById.useQuery(roomId);
-  
+  const { data: fetchedPlayers } = api.playerIds.getPlayersByIds(room?.playerIds);
 
-  console.log(room?.playersIds)
+  console.log(fetchedPlayers)
 
-  const { data: players } = api.playerIds.getPlayersByIds(room?.playersIds);
-
-  // const players = 
+  const playerNames: string[] = fetchedPlayers ? fetchedPlayers?.map(player => player.name) : [];
 
   const startRoulette = () => {
     setRouletteActive(true);
-    const randomIndex = Math.floor(Math.random() * players.length);
+     const randomIndex = Math.floor(Math.random() * playerNames.length);
     setTimeout(() => {
-      setWinner(players[randomIndex]);
+      setWinner(playerNames[randomIndex]);
       setRouletteActive(false);
-      // setrouletteFinneshed(true);
+      setrouletteFinneshed(true);
     }, 5000); // 5 seconds animation
   };
 
@@ -55,7 +52,7 @@ const GameAreaPage = (props: PageProps) => {
         <div className="flex flex-col items-center justify-center w-full h-[calc(100vh-12rem)] bg-[#262626] rounded-lg p-4">
           {/* <div className="text-white text-4xl font-bold text-center mb-4">Game Area</div> */}
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            {players.map((player, index) => (
+            {playerNames.map((player, index) => (
               <motion.div
                 key={index}
                 className={classNames("w-40 h-10 flex items-center justify-center text-white rounded-lg bg-gray-500", {

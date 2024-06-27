@@ -18,17 +18,16 @@ export const players = {
 };
 
 export const playerIds = {
-  // Метод getOrCreate использует хук useQuery для получения или создания игрока
-  getPlayersByIds: (playerIds: [string] | undefined, options?: UseQueryOptions<Player | undefined, Error>) =>
-    useQuery<Player | undefined, Error>({
+  getPlayersByIds: (playerIds: number[] | undefined, options?: UseQueryOptions<Player[], Error>) =>
+    useQuery<Player[], Error>({
       queryKey: ["playerIds", playerIds],
-      queryFn: async () => playerIds && (await getPlayersByIds(playerIds)),
-      enabled: !!playerIds, // Запускать запрос только если userId определен
+      queryFn: async () => playerIds ? await getPlayersByIds(playerIds) : [],
+      enabled: !!playerIds, // Enable the query only if playerIds is not undefined
       ...options,
     }),
 };
 
-// Функция для выполнения запроса создания или получения игрока
+
 async function fetchOrCreatePlayer(userId: string): Promise<Player> {
   const response = await fetch(`${curEnv}/api/getOrCreatePlayer`, {
     method: "POST",
@@ -45,7 +44,7 @@ async function fetchOrCreatePlayer(userId: string): Promise<Player> {
   return response.json();
 }
 
-async function getPlayersByIds(playerIds: [string]): Promise<Player> {
+async function getPlayersByIds(playerIds: number[]): Promise<Player[]> {
   const response = await fetch(`${curEnv}/api/players`, {
     method: "POST",
     headers: {
