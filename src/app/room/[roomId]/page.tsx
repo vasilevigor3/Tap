@@ -21,7 +21,6 @@ const GameAreaPage = (props: PageProps) => {
   const params = {
     room: room,
     fetchedPlayers:fetchedPlayers,
-    // winner: winner
   }
 
   if (room.gameType == "ROULETTE") {

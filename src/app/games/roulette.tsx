@@ -30,7 +30,7 @@ export const RouletteGame = (rouletteProps: RouletteProps) => {
       [playerId.toString()]: playerId.toString() === winner?.id.toString() ? "1" : "0",
     })) || [];
 
-    const { mutate: finishGame, isError } = api.rooms.finishGame();
+    const { mutate: finishGame } = api.rooms.finishGame();
 
     const handleFinishGame = () => {
         const finishGameProps: FinishGameProps = {
