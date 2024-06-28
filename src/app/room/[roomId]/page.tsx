@@ -2,6 +2,7 @@
 import { api } from "@/app/react-query/routers";
 import { useRouter } from "next/navigation";
 import { RouletteGame } from "@/app/games/roulette";
+import { FindFastGame } from "@/app/games/findFast";
 
 type PageProps = {
   params: {
@@ -27,6 +28,14 @@ const GameAreaPage = (props: PageProps) => {
     return (
       <div>
         <RouletteGame params={params}/>
+      </div>
+    )
+  }
+
+  if (room.gameType == "FF") {
+    return (
+      <div>
+        <FindFastGame params={params}/>
       </div>
     )
   }

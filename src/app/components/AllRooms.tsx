@@ -8,8 +8,12 @@ import { useRouter } from "next/navigation";
 
 const JoinRoomButton = (props: { roomId: number }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { mutateAsync: joinRoom } = api.rooms.join.useMutation({
     onSuccess: (roomJoined) => {
+      queryClient.invalidateQueries({
+        queryKey: ["rooms"],
+      })
       if (!roomJoined.isGameStarted) return;
       router.push(`/room/${roomJoined.roomId}`);
     },

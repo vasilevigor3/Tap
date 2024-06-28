@@ -12,7 +12,7 @@ import { Room } from "@/types/room.types";
 type RouletteProps = {
     params: {
         room: Room;
-        fetchedPlayers:Player[] | undefined;
+        fetchedPlayers: Player[] | undefined;
     };
 };
 
@@ -26,70 +26,75 @@ export const RouletteGame = (rouletteProps: RouletteProps) => {
 
     const [rouletteActive, setRouletteActive] = useState(false);
     const [countdown, setCountdown] = useState(3);
-    const playersScores = room?.playerIds?.map(playerId => ({
-      [playerId.toString()]: playerId.toString() === winner?.id.toString() ? "1" : "0",
-    })) || [];
+
 
     const { mutate: finishGame } = api.rooms.finishGame();
 
     const handleFinishGame = () => {
+        const playersScores = room?.playerIds?.map(playerId => ({
+            [playerId.toString()]: playerId.toString() === winner?.id.toString() ? "1" : "0",
+        })) || [];
+
         const finishGameProps: FinishGameProps = {
-          roomId,
-          playersScores,
+            roomId,
+            playersScores,
         };
-    
+
         finishGame(finishGameProps, {
-          onSuccess: (data) => {
-            console.log('Game finished successfully:', data);
-            // Additional logic upon successful game finish
-          },
-          onError: (error) => {
-            console.error('Failed to finish the game:', error);
-            // Error handling logic
-          }
+            onSuccess: (data) => {
+                console.log('Game finished successfully:', data);
+                // Additional logic upon successful game finish
+            },
+            onError: (error) => {
+                console.error('Failed to finish the game:', error);
+                // Error handling logic
+            }
         });
-      };
-    
-      const startRoulette = () => {
+    };
+
+
+    //TODO: problem that method runs two times, different random number
+    const startRoulette = () => {
         setRouletteActive(true);
         setTimeout(() => {
-          if (fetchedPlayers && fetchedPlayers.length > 0) {
-            console.log("test")
-            const randomIndex = Math.floor(Math.random() * fetchedPlayers.length);
-            console.log(randomIndex)
-            setWinner(fetchedPlayers[randomIndex]);
-            setRouletteActive(false);
-            handleFinishGame();
-          } else {
-            console.log("No players to select a winner from.");
-            setWinner(undefined);
-          }
+            if (fetchedPlayers && fetchedPlayers.length > 0) {
+                console.log("test")
+                console.log(fetchedPlayers)
+                const randomIndex = Math.floor(Math.random() * fetchedPlayers.length);
+                console.log(randomIndex)
+                setWinner(fetchedPlayers[randomIndex]);
+                setRouletteActive(false);
+                handleFinishGame();
+            } else {
+                console.log("No players to select a winner from.");
+                setWinner(undefined);
+            }
         }, 3000); // 5 seconds animation
-      };
-    
-      const generateRandomTransition = () => ({
+    };
+
+    const generateRandomTransition = () => ({
         duration: Math.random() * 0.5 + 0.5, // Random duration between 0.5 and 1 second
         repeat: Infinity,
         repeatType: "mirror" as const, // Ensure repeatType is a valid literal type
         delay: Math.random() * 0.5, // Random delay up to 0.5 seconds
-      });
-    
-      useEffect(() => {
+    });
+
+    useEffect(() => {
         // Initiate countdown upon component mount
         const countdownTimer = setInterval(() => {
-          setCountdown((prevCountdown) => {
-            if (prevCountdown > 1) {
-              return prevCountdown - 1;
-            } else {
-              clearInterval(countdownTimer);
-              startRoulette(); // Start the roulette after countdown finishes
-              return 0;
-            }
-          });
+            setCountdown((prevCountdown) => {
+                if (prevCountdown > 1) {
+                    return prevCountdown - 1;
+                } else {
+                    clearInterval(countdownTimer);
+                    startRoulette(); // Start the roulette after countdown finishes
+                    return 0;
+                }
+            });
         }, 1000); // Decrements the countdown every second
-    
+
         return () => clearInterval(countdownTimer); // Cleanup interval on component unmount
-      }, [fetchedPlayers]);
+    }, [fetchedPlayers]);
 
     return (<div>
         <h1 className="text-2xl font-bold text-white text-center">{room.gameType}</h1>
