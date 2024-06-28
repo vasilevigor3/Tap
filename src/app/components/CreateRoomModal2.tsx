@@ -69,7 +69,8 @@ const CreateRoomForm: React.FC<CreateRoomFormProps> = ({
       >
         <option value="" disabled>Select Game Type</option>
         <option value="roulette">Roulette</option>
-        {/* Дополнительные типы игр */}
+        <option value="FF">FindFast</option>
+        <option value="KNB">Rock Paper Scissors</option>
       </select>
 
       <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md">
