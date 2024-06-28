@@ -5,10 +5,8 @@ import { Button } from "@/app/components/ui/Button";
 import { api } from "@/app/react-query/routers";
 import classNames from "classnames";
 import { useRouter } from "next/navigation";
-
-// setrouletteFinneshed(true); 21
-// exit button post /finish-game + get /allRooms
-// start auto game 3.2.1...
+import { FinishGameProps } from "@/types/room.types"
+import { Player } from "@/types/Player";
 
 type PageProps = {
   params: {
@@ -18,25 +16,53 @@ type PageProps = {
 
 const GameAreaPage = (props: PageProps) => {
   const roomId = props.params.roomId;
-  const [winner, setWinner] = useState<string | null>(null);
+  const [winner, setWinner] = useState<Player | undefined>(undefined);
   const [rouletteActive, setRouletteActive] = useState(false);
-  // const [rouletteFineshed, setrouletteFineshed] = useState(false);
   const router = useRouter();
   const [countdown, setCountdown] = useState(3);
 
   const { data: room } = api.rooms.getById.useQuery(roomId);
   //TODO: some check if user/player could see this page
   const { data: fetchedPlayers } = api.playerIds.getPlayersByIds(room?.playerIds);
-  const playerNames: string[] = fetchedPlayers ? fetchedPlayers?.map(player => player.name) : [];
+
+  const playersScores = room?.playerIds?.map(playerId => ({
+    [playerId.toString()]: playerId.toString() === winner?.id.toString() ? "1" : "0",
+  })) || [];
+
+  const { mutate: finishGame, isError } = api.rooms.finishGame();
+
+  const handleFinishGame = () => {
+    const finishGameProps: FinishGameProps = {
+      roomId, 
+      playersScores,
+    };
+
+    finishGame(finishGameProps, {
+      onSuccess: (data) => {
+        console.log('Game finished successfully:', data);
+        // Additional logic upon successful game finish
+      },
+      onError: (error) => {
+        console.error('Failed to finish the game:', error);
+        // Error handling logic
+      }
+    });
+  };
 
   const startRoulette = () => {
     setRouletteActive(true);
-    const randomIndex = Math.floor(Math.random() * playerNames.length);
     setTimeout(() => {
-      setWinner(playerNames[randomIndex]);
-      setRouletteActive(false);
-      // setrouletteFineshed(true);
-      //send /finish-game
+      if (fetchedPlayers && fetchedPlayers.length > 0) {
+        console.log("test")
+        const randomIndex = Math.floor(Math.random() * fetchedPlayers.length);
+        console.log(randomIndex)
+        setWinner(fetchedPlayers[randomIndex]);
+        setRouletteActive(false);
+        handleFinishGame();
+      } else {
+        console.log("No players to select a winner from.");
+        setWinner(undefined);
+      }
     }, 3000); // 5 seconds animation
   };
 
@@ -74,31 +100,24 @@ const GameAreaPage = (props: PageProps) => {
 
           {/* <div className="text-white text-4xl font-bold text-center mb-4">Game Area</div> */}
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            {playerNames.map((player, index) => (
+            {fetchedPlayers?.map((player, index) => (
               <motion.div
                 key={index}
                 className={classNames("w-40 h-10 flex items-center justify-center text-white rounded-lg bg-gray-500", {
-                  "bg-[red]": winner === player,
+                  "bg-[red]": winner?.name === player.name,
                 })}
                 animate={rouletteActive ? { backgroundColor: ["#1a1a1a", "#888", "#1a1a1a"] } : {}}
                 transition={generateRandomTransition()}
               >
-                {player}
+                {player.name}
               </motion.div>
             ))}
           </div>
-          
+
           {countdown > 0 && (
             <div>Starting in... {countdown}</div>
           )
           }
-
-
-          {/* {!rouletteFineshed && (
-            <Button variant="outline" size="lg" className="text-white" onClick={startRoulette}>
-              Start Roulette
-            </Button>
-          )} */}
           <AnimatePresence>
             {rouletteActive && (
               <motion.div
@@ -121,7 +140,7 @@ const GameAreaPage = (props: PageProps) => {
               transition={{ duration: 0.5 }}
             >
               <div className="flex flex-wrap justify-center mb-4">
-                Winner: <span>{winner}</span>
+                Winner: <span>{winner.name}</span>
               </div>
               <div className="flex flex-wrap justify-center mb-4">
                 <Button variant="outline" size="lg" className="text-white" onClick={() => router.push(`/`)}>
@@ -133,7 +152,6 @@ const GameAreaPage = (props: PageProps) => {
         </div>
       </div>
     </div>
-    
   );
 };
 

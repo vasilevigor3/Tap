@@ -79,6 +79,7 @@ export const rooms = {
             },
             body: JSON.stringify(props),
           });
+          console.log(JSON.stringify(props))
           const roomLeft: Room = await response.json();
           return roomLeft;
         },
@@ -86,21 +87,20 @@ export const rooms = {
       }),
   },
 
-  finishGame: {
-    useMutation: (options?: MutationOptions<Player, Error, FinishGameProps>) =>
-      useMutation<Player, Error, FinishGameProps>({
-        mutationFn: async (props: FinishGameProps) => {
-          const response = await fetch(`${curEnv}/api/finish-game`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(props),
-          });
-          const winner: Player = await response.json();
-          return winner;
+  finishGame: () => useMutation<Player[], Error, FinishGameProps>({
+    mutationKey: ['finishGame'],
+    mutationFn: async (finishGameProps: FinishGameProps) => {
+      const response = await fetch(`${curEnv}/api/finish-game`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        ...options,
-      }),
-  },
+        body: JSON.stringify(finishGameProps),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    },
+  }),
 };

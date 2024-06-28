@@ -5,12 +5,10 @@
  */
 "use client";
 
-import { curEnv } from "@/constants/env";
 import { SVGProps, useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "../ui/Button";
 import CreateRoomModal from "../CreateRoomModal2";
-import { Player } from "../../../types/Player";
 import { api } from "../../react-query/routers";
 
 
