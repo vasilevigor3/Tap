@@ -7,6 +7,9 @@ import { api } from "@/app/react-query/routers";
 import { FinishGameProps } from "@/types/room.types";
 import { Player } from "@/types/Player";
 import { Room } from "@/types/room.types";
+import { motion } from "framer-motion";
+import { Button } from "@/app/components/ui/Button";
+import { curEnv } from "@/constants/env";
 
 type FindFastProps = {
   params: {
@@ -16,21 +19,28 @@ type FindFastProps = {
 };
 
 export const FindFastGame = (findFastProps: FindFastProps) => {
+  const { data: user } = api.users.getOrCreate.useQuery();
+  const { data: player } = api.players.getOrCreate(user?.id);
+  const [countdown, setCountdown] = useState(3);
+
   const router = useRouter();
+  const [gameActive, setGameActive] = useState<Boolean>(false);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const timerRef = useRef<number>(0);
 
   const room = findFastProps.params.room;
   const roomId = findFastProps.params.room.roomId.toString();
   const fetchedPlayers = findFastProps.params.fetchedPlayers;
-  const [winner, setWinner] = useState<Player | undefined>(undefined);
+  const [winner, setWinner] = useState<Player>();
 
   const { mutate: finishGame } = api.rooms.finishGame();
 
-  const handleFinishGame = () => {
+  const handleFinishGame = (score:Number, winner:Player) => {
     const playersScores =
       room?.playerIds?.map((playerId) => ({
-        [playerId.toString()]: playerId.toString() === winner?.id.toString() ? "1" : "0",
+        [playerId.toString()]: playerId === winner?.id ? score.toString() : "0",
       })) || [];
-
+      
     const finishGameProps: FinishGameProps = {
       roomId,
       playersScores,
@@ -48,11 +58,75 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
     });
   };
 
+  const checkScoresAndDetermineWinner = async () => {
+    try {
+      const response = await fetch(`${curEnv}/api/scores`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ gameId: roomId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch scores");
+      }
+
+      const scores: { playerId: string; score: number | null }[] = await response.json();
+
+
+
+      let highestScore = -1;
+      let currentWinner: Player | undefined;
+
+      scores.forEach(score => {
+        if (score.playerId.toString() === player?.id.toString()) {
+          score.score = timerRef.current;
+          highestScore = timerRef.current;
+        }
+      });
+
+      console.log(scores)
+      console.log(highestScore)
+
+      scores.forEach((score) => {
+        if (score.score !== null && score.score <= highestScore) {
+          highestScore = score.score;
+          currentWinner = fetchedPlayers?.find((p) => p.id.toString() === score.playerId.toString());
+        }
+      });
+
+      if (currentWinner) {
+        setWinner(currentWinner)
+        handleFinishGame(highestScore,currentWinner);
+      }
+    } catch (error) {
+      console.error("Error fetching scores:", error);
+    }
+  };
+
   // Ref for the Phaser game container
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!gameContainerRef.current) return;
+    // Initiate countdown upon component mount
+    const countdownTimer = setInterval(() => {
+      setCountdown((prevCountdown) => {
+        if (prevCountdown > 1) {
+          return prevCountdown - 1;
+        } else {
+          clearInterval(countdownTimer);
+          setGameActive(true);
+          return 0;
+        }
+      });
+    }, 1000); // Decrements the countdown every second
+
+    return () => clearInterval(countdownTimer); // Cleanup interval on component unmount
+  }, []);
+
+  useEffect(() => {
+    if (!gameContainerRef.current || !gameActive) return;
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -76,7 +150,17 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
       const image = this.add.image(400, 300, "gameImage");
       image.setInteractive();
 
-      const objectArea = { x: 350, y: 250, width: 100, height: 100 }; 
+      const objectArea = { x: 350, y: 250, width: 100, height: 100 };
+
+      // Draw a transparent rectangle over the clickable area
+      const graphics = this.add.graphics();
+      graphics.lineStyle(2, 0xff0000, 1); // Red outline with 2px width
+      graphics.strokeRect(objectArea.x, objectArea.y, objectArea.width, objectArea.height);
+
+      // Start the timer
+      timerRef.current = window.setInterval(() => {
+        setElapsedTime((prevTime) => prevTime + 1);
+      }, 1000);
 
       this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         const x = pointer.x;
@@ -88,9 +172,12 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
           y >= objectArea.y &&
           y <= objectArea.y + objectArea.height
         ) {
-          alert("You found the object!");
-          setWinner(fetchedPlayers?.find((player) => player.id.toString() === "some_player_id")); // example
-          handleFinishGame();
+          // alert("You found the object!");
+          if (timerRef.current !== null) {
+            clearInterval(timerRef.current); // Stop the timer
+          }
+          checkScoresAndDetermineWinner();
+          setGameActive(false);
         } else {
           alert("Try again!");
         }
@@ -103,13 +190,40 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
 
     return () => {
       game.destroy(true);
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current); // Cleanup the timer on component unmount
+      }
     };
-  }, [fetchedPlayers, winner]);
+  }, [fetchedPlayers, gameActive]);
 
   return (
     <div className="text-2xl font-bold text-white text-center">
       Find Fast Game
-      <div ref={gameContainerRef} />
+      {countdown > 0 && (
+        <div>Starting in... {countdown}</div>
+      )}
+      {gameActive && (<div ref={gameContainerRef} />)}
+      {gameActive && (
+        <div>Elapsed Time: {elapsedTime} seconds</div>
+      )}
+      {winner && !gameActive && (
+        <motion.div
+          className="text-white text-4xl font-bold mt-4"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex flex-wrap justify-center mb-4">
+            Winner: <span>{winner.name}</span>
+          </div>
+          <div className="flex flex-wrap justify-center mb-4">
+            <Button variant="outline" size="lg" className="text-white" onClick={() => router.push(`/`)}>
+              Exit Room
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

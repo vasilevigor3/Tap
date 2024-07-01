@@ -1,6 +1,6 @@
 "use client";
 import { api } from "@/app/react-query/routers";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { RouletteGame } from "@/app/games/roulette";
 import { FindFastGame } from "@/app/games/findFast";
 
@@ -11,7 +11,7 @@ type PageProps = {
 };
 
 const GameAreaPage = (props: PageProps) => {
-  const router = useRouter();
+  // const router = useRouter();
   const roomId = props.params.roomId;
   const { data: room } = api.rooms.getById.useQuery(roomId);
   //TODO: some check if user/player could see this page
@@ -25,6 +25,7 @@ const GameAreaPage = (props: PageProps) => {
   }
 
   room.gameType = "FF"
+
   if (room.gameType == "ROULETTE") {
     return (
       <div>
