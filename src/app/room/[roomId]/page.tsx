@@ -24,6 +24,7 @@ const GameAreaPage = (props: PageProps) => {
     fetchedPlayers:fetchedPlayers,
   }
 
+  room.gameType = "FF"
   if (room.gameType == "ROULETTE") {
     return (
       <div>
