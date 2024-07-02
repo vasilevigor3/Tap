@@ -39,3 +39,10 @@ export type ReadyToPlayProps = {
   gameId: string;
   playerId: string;
 };
+
+export type ScoreDTO = {
+  id: string;
+  score:string;
+  playerId:string;
+  gameId:string
+}

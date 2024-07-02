@@ -2,7 +2,7 @@
 import { api } from "@/app/react-query/routers";
 // import { useRouter } from "next/navigation";
 import { RouletteGame } from "@/app/games/roulette";
-import { FindFastGame } from "@/app/games/findFast3";
+import { FindFastGame } from "@/app/games/findFast4";
 
 type PageProps = {
   params: {
