@@ -5,6 +5,13 @@ import { Card, CardContent } from "./ui/Card";
 import { api } from "../react-query/routers/";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { Player } from "@/types/Player";
+import { useEffect } from "react";
+import useGameStatus from '@/app/hooks/useGameStatus';
+import { Client } from '@stomp/stompjs';
+
+
+
 
 const JoinRoomButton = (props: { roomId: number }) => {
   const router = useRouter();
@@ -14,8 +21,8 @@ const JoinRoomButton = (props: { roomId: number }) => {
       queryClient.invalidateQueries({
         queryKey: ["rooms"],
       })
-      if (!roomJoined.isGameStarted) return;
-      router.push(`/room/${roomJoined.roomId}`);
+      // if (!roomJoined.isRoomFull) return;
+      // router.push(`/room/${roomJoined.roomId}`);
     },
   });
   const { data: user } = api.users.getOrCreate.useQuery();
@@ -26,6 +33,8 @@ const JoinRoomButton = (props: { roomId: number }) => {
     if (!player?.id) return;
     await joinRoom({ roomId, playerIds: [player.id] });
   };
+
+  useGameStatus(roomId, player?.id);
 
   return (
     <Button
@@ -80,7 +89,8 @@ const LeaveRoomButton = (props: { roomId: number }) => {
 
 export const AllRooms = () => {
   const { data: rooms } = api.rooms.getAll.useQuery();
-  const filteredRooms = rooms?.filter((room) => !room.isGameStarted);
+  const filteredRooms = rooms?.filter((room) => !room.isRoomFull);
+  
 
   return (
     <main className="flex-1 bg-gray-100 dark:bg-gray-950 py-8 px-4 md:px-8">

@@ -8,8 +8,8 @@ export type Room = {
   gameType: string;
   winnerId: string;
   playersIds: [];
-  isGameStarted: [];
-  isGameFinished: [];
+  isRoomFull: boolean;
+  isGameFinished: boolean;
 };
 
 export type JoinRoomProps = {
@@ -34,3 +34,8 @@ export type FinishGameProps = {
   roomId: string;
   playersScores: Record<string, string>[];
 }
+
+export type ReadyToPlayProps = {
+  gameId: string;
+  playerId: string;
+};

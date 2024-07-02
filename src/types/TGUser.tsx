@@ -38,6 +38,6 @@ export type Room = {
   gameType: string;
   winnerId: number | null;
   playerIds: number[];
-  isGameStarted: boolean;
+  isRoomFull: boolean;
   isGameFinished: boolean;
 };

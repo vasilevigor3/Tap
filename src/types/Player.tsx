@@ -7,3 +7,5 @@ export type Player = {
     currentRoomId:string;
     wonGamesIds:[]
   }
+
+  export type GameId = string; 

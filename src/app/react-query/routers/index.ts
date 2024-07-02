@@ -2,6 +2,7 @@
 import { players } from "./players.router";
 import { playerIds } from "./players.router";
 import { rooms } from "./rooms.router";
+import { game } from "./game.router";
 import { users } from "./users.router";
 
 export const api = {
@@ -9,4 +10,5 @@ export const api = {
   players,
   playerIds,
   rooms,
+  game
 };

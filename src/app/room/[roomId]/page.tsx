@@ -2,7 +2,7 @@
 import { api } from "@/app/react-query/routers";
 // import { useRouter } from "next/navigation";
 import { RouletteGame } from "@/app/games/roulette";
-import { FindFastGame } from "@/app/games/findFast";
+import { FindFastGame } from "@/app/games/findFast3";
 
 type PageProps = {
   params: {
@@ -17,7 +17,7 @@ const GameAreaPage = (props: PageProps) => {
   //TODO: some check if user/player could see this page
   const { data: fetchedPlayers } = api.playerIds.getPlayersByIds(room?.playerIds);
 
-  if (!room?.isGameStarted) return <div className="text-2xl font-bold text-white text-center">Game has not started yet.</div>;
+  if (!room?.isRoomFull) return <div className="text-2xl font-bold text-white text-center">Game has not started yet.</div>;
 
   const params = {
     room: room,
