@@ -18,7 +18,7 @@ import { Client } from '@stomp/stompjs';
 type FindFastProps = {
     params: {
         room: Room;
-        fetchedPlayers: Player[] | undefined;
+        fetchedPlayers: Player[];
     };
 };
 
@@ -160,12 +160,12 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
                         y >= objectArea.y &&
                         y <= objectArea.y + objectArea.height
                     ) {
-                        alert("You found the object!");
+                        // alert("You found the object!");
                         if (timerRef.current !== null) {
                             clearInterval(timerRef.current); // Stop the timer
-                            console.log(timerRef.current)
+                            console.log("timerRef.current:", timerRef.current)
                             const elapsedTimeInSeconds = elapsedTime;
-                            console.log(elapsedTimeInSeconds)
+                            console.log("elapsedTimeInSeconds:", elapsedTimeInSeconds)
                             submitScore(timerRef.current)
                         }
                         setGameActive(false);
@@ -246,19 +246,23 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
                 console.log("Connected to WS");
 
                 stompClient.subscribe(`/topic/game/${roomId}/scores`, (message) => {
-                    console.log(message)
+                    // console.log(message)
                     const update = JSON.parse(message.body);
                     
-                    console.log(message.body)
+                    // console.log(message.body)
                     // If the received score is better than the current best, update it
                     if (!bestTime || update.score < bestTime) {
                         setBestTime(update.score);
+                        
+                        console.log("update.score:", update.score)
+                        console.log("bestTime:", bestTime)
+
                         if (update.playerId === player?.id.toString()) {
                             // This player has the best score
                             
                             setWinner(player); // Ensure you have logic to appropriately determine and display the winner
-                            console.log(winner)
-                            console.log(player)
+                            console.log("winner:", winner)
+                            console.log("player:", player)
 
                             const playersScores = room?.playerIds?.map(playerId => ({
                                 [playerId.toString()]: playerId.toString() === player?.id.toString() ? "1" : "0",
@@ -320,7 +324,7 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
             {!gameActive && !currentPlayerIsReady && (
                 <div>
                     <div>Press ready or you will be kicked with 5 sec...</div>
-                    <ReadyButton gameId={room.roomId.toString()} player={player} />
+                    {player && <ReadyButton gameId={room.roomId.toString()} player={player} />}
                 </div>)}
 
             {!gameActive && currentPlayerIsReady && (

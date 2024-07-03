@@ -86,8 +86,8 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
         }
       });
 
-      console.log(scores)
-      console.log(highestScore)
+      console.log("Scores:", scores)
+      console.log("Highest score:", highestScore)
 
       scores.forEach((score) => {
         if (score.score !== null && score.score <= highestScore) {

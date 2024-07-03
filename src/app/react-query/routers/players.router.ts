@@ -8,10 +8,10 @@ import { curEnv } from "@/constants/env";
 // Объект players будет содержать все взаимодействия с данными игроков
 export const players = {
   // Метод getOrCreate использует хук useQuery для получения или создания игрока
-  getOrCreate: (userId: string | undefined, options?: UseQueryOptions<Player, Error>) =>
+  getOrCreate: (userId: string, options?: UseQueryOptions<Player, Error>) =>
     useQuery<Player, Error>({
       queryKey: ["player", userId],
-      queryFn: async () => await fetchOrCreatePlayer(userId!),
+      queryFn: async () => await fetchOrCreatePlayer(userId),
       enabled: !!userId, // Запускать запрос только если userId определен
       ...options,
     }),
