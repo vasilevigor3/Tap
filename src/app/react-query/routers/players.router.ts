@@ -4,15 +4,21 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 // import { Player } from "@/types/TGUser";
 import { Player } from "@/types/Player";
 import { curEnv } from "@/constants/env";
+import { mockUser } from "@/constants/mock";
 
-// Объект players будет содержать все взаимодействия с данными игроков
 export const players = {
-  // Метод getOrCreate использует хук useQuery для получения или создания игрока
-  getOrCreate: (userId: string, options?: UseQueryOptions<Player, Error>) =>
+  getOrCreate: (options?: UseQueryOptions<Player, Error>) =>
     useQuery<Player, Error>({
-      queryKey: ["player", userId],
-      queryFn: async () => await fetchOrCreatePlayer(userId),
-      enabled: !!userId, // Запускать запрос только если userId определен
+      queryKey: ["player"],
+      queryFn: async () => {
+        const telegramUser = window?.Telegram?.WebApp?.initDataUnsafe?.user ?? mockUser;
+        const id = telegramUser.id;
+        if (!id) {
+          throw new Error("User ID is not defined");
+        }
+        return await fetchOrCreatePlayer(id);
+      },
+
       ...options,
     }),
 };
@@ -21,12 +27,11 @@ export const playerIds = {
   getPlayersByIds: (playerIds: number[] | undefined, options?: UseQueryOptions<Player[], Error>) =>
     useQuery<Player[], Error>({
       queryKey: ["playerIds", playerIds],
-      queryFn: async () => playerIds ? await getPlayersByIds(playerIds) : [],
+      queryFn: async () => (playerIds ? await getPlayersByIds(playerIds) : []),
       enabled: !!playerIds, // Enable the query only if playerIds is not undefined
       ...options,
     }),
 };
-
 
 async function fetchOrCreatePlayer(userId: string): Promise<Player> {
   const response = await fetch(`${curEnv}/api/getOrCreatePlayer`, {

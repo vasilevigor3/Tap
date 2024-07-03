@@ -1,7 +1,7 @@
 export type Room = {
   roomId: number;
   roomName: string;
-  playerIds: [number];
+  playerIds: string[];
   maxPlayers: number;
   bet: number;
   ownerId: string;
@@ -18,8 +18,8 @@ export type JoinRoomProps = {
 };
 
 export type LeaveRoomProps = {
-  roomId: number;
-  playerIds: number[];
+  roomId: string;
+  playerIds: string[];
 };
 
 export type CreateRoomProps = {
@@ -28,12 +28,12 @@ export type CreateRoomProps = {
   bet: number;
   ownerId: number;
   gameType: string;
-}
+};
 
 export type FinishGameProps = {
   roomId: string;
   playersScores: Record<string, string>[];
-}
+};
 
 export type ReadyToPlayProps = {
   gameId: string;
@@ -42,7 +42,7 @@ export type ReadyToPlayProps = {
 
 export type ScoreDTO = {
   id: string;
-  score:string;
-  playerId:string;
-  gameId:string
-}
+  score: string;
+  playerId: string;
+  gameId: string;
+};

@@ -4,6 +4,7 @@ import ReactQueryProvider from "./react-query/Provider";
 import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
 import Script from "next/script";
+import { Toaster } from "./components/ui/Toast";
 
 export const metadata: Metadata = {
   title: "TapTap Casino",
@@ -24,7 +25,10 @@ export default function RootLayout({
         <ReactQueryProvider>
           <Header />
           {children}
+
           <Footer />
+
+          <Toaster />
         </ReactQueryProvider>
       </body>
     </html>
