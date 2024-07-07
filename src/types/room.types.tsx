@@ -1,11 +1,12 @@
 export type Room = {
-  roomId: number;
+  roomId: string;
   roomName: string;
   playerIds: string[];
   maxPlayers: number;
   bet: number;
   ownerId: string;
   gameType: string;
+  gameId: string;
   winnerId: string;
   playersIds: [];
   isRoomFull: boolean;

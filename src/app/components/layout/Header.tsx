@@ -18,7 +18,7 @@ export default function Header() {
   const { data: user } = api.users.getOrCreate.useQuery();
   // const { data: player } = api.players.getOrCreate.useQuery(user?.id);
   const { data: player } = api.players.getOrCreate(user?.id);
-  
+  const { mutate: leaveCurrentRoom } = api.rooms.leave.useMutation();
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -37,8 +37,13 @@ export default function Header() {
             href="/"
             className="hover:text-gray-600 dark:hover:text-gray-400 transition-colors duration-300"
             prefetch={false}
+            onClick={() => {
+              if (player?.id && player.currentRoomId) {
+                leaveCurrentRoom({ roomId: player.currentRoomId, playerIds: [player.id.toString()] });
+              }
+            }}
           >
-            Home
+            Leave Room
           </Link>
           <Link
             href="#"

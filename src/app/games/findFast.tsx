@@ -6,207 +6,238 @@ import { useRouter } from "next/navigation";
 import { api } from "@/app/react-query/routers";
 import { FinishGameProps } from "@/types/room.types";
 import { Player } from "@/types/Player";
-import { Room } from "@/types/room.types";
 import { motion } from "framer-motion";
 import { Button } from "@/app/components/ui/Button";
-import { curEnv } from "@/constants/env";
+import { Client } from "@stomp/stompjs";
 
 type FindFastProps = {
   params: {
-    room: Room;
-    fetchedPlayers: Player[] | undefined;
+    roomId: string;
   };
 };
 
+//MAKE A BIG CHECK IF USER COULD ENTER A ROOM IF HE IS NOT PLAYER OF THE ROOM
+
 export const FindFastGame = (findFastProps: FindFastProps) => {
-  const { data: user } = api.users.getOrCreate.useQuery();
-  const { data: player } = api.players.getOrCreate(user?.id);
-  const [countdown, setCountdown] = useState(3);
+  const roomId = findFastProps.params.roomId;
 
   const router = useRouter();
-  const [gameActive, setGameActive] = useState<Boolean>(false);
-  const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const timerRef = useRef<number>(0);
 
-  const room = findFastProps.params.room;
-  const roomId = findFastProps.params.room.roomId.toString();
-  const fetchedPlayers = findFastProps.params.fetchedPlayers;
+  const { data: user } = api.users.getOrCreate.useQuery();
+  const { data: player } = api.players.getOrCreate(user?.id);
+  // console.log("user", player?.id);
   const [winner, setWinner] = useState<Player>();
+
+  const updateScoresMutation = api.game.updateScoresForCurrentGameAndCurrentPlayer.useMutation();
+
+  const { data: room, isLoading: roomLoading } = api.rooms.getById.useQuery(roomId);
+  // console.log("room", room);
+
+
+
 
   const { mutate: finishGame } = api.rooms.finishGame();
 
-  const handleFinishGame = (score:Number, winner:Player) => {
-    const playersScores =
-      room?.playerIds?.map((playerId) => ({
-        [playerId.toString()]: playerId === winner?.id ? score.toString() : "0",
-      })) || [];
-      
-    const finishGameProps: FinishGameProps = {
-      roomId,
-      playersScores,
-    };
+  const timerRef = useRef<number>(0);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
-    finishGame(finishGameProps, {
-      onSuccess: (data) => {
-        console.log("Game finished successfully:", data);
-        // Additional logic upon successful game finish
-      },
-      onError: (error) => {
-        console.error("Failed to finish the game:", error);
-        // Error handling logic
-      },
-    });
-  };
-
-  const checkScoresAndDetermineWinner = async () => {
-    try {
-      const response = await fetch(`${curEnv}/api/scores`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ gameId: roomId }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch scores");
-      }
-
-      const scores: { playerId: string; score: number | null }[] = await response.json();
-
-
-
-      let highestScore = -1;
-      let currentWinner: Player | undefined;
-
-      scores.forEach(score => {
-        if (score.playerId.toString() === player?.id.toString()) {
-          score.score = timerRef.current;
-          highestScore = timerRef.current;
-        }
-      });
-
-      console.log("Scores:", scores)
-      console.log("Highest score:", highestScore)
-
-      scores.forEach((score) => {
-        if (score.score !== null && score.score <= highestScore) {
-          highestScore = score.score;
-          currentWinner = fetchedPlayers?.find((p) => p.id.toString() === score.playerId.toString());
-        }
-      });
-
-      if (currentWinner) {
-        setWinner(currentWinner)
-        handleFinishGame(highestScore,currentWinner);
-      }
-    } catch (error) {
-      console.error("Error fetching scores:", error);
-    }
-  };
-
-  // Ref for the Phaser game container
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
+
+  const [bestTime, setBestTime] = useState(null);
+  const [myBestTime, setMyBestTime] = useState(0);
+
+
+  const gameRef = useRef<Phaser.Game | null>(null);
+  // console.log("gameId1:", room?.gameId.toString());
+  // console.log("playerId1:", player?.id.toString());
+
+
   useEffect(() => {
-    // Initiate countdown upon component mount
-    const countdownTimer = setInterval(() => {
-      setCountdown((prevCountdown) => {
-        if (prevCountdown > 1) {
-          return prevCountdown - 1;
-        } else {
-          clearInterval(countdownTimer);
-          setGameActive(true);
-          return 0;
+    // console.log("gameId2:", room.gameId);
+    // console.log("playerId2:", player?.id.toString());
+
+    const loadGame = () => {
+      if (!gameContainerRef.current || gameRef.current) return;
+
+      const config: Phaser.Types.Core.GameConfig = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        parent: gameContainerRef.current,
+        scene: {
+          preload,
+          create,
+          update,
+        },
+      };
+
+      gameRef.current = new Phaser.Game(config);
+
+      function preload(this: Phaser.Scene) {
+        this.load.image("gameImage", "/puzzle.jpg");
+      }
+
+      function create(this: Phaser.Scene) {
+        const image = this.add.image(400, 300, "gameImage");
+        image.setInteractive();
+
+        const objectArea = { x: 350, y: 250, width: 100, height: 100 };
+
+        // Draw a transparent rectangle over the clickable area
+        const graphics = this.add.graphics();
+        graphics.lineStyle(2, 0xff0000, 1); // Red outline with 2px width
+        graphics.strokeRect(objectArea.x, objectArea.y, objectArea.width, objectArea.height);
+
+        this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+          const x = pointer.x;
+          const y = pointer.y;
+
+          if (
+            x >= objectArea.x &&
+            x <= objectArea.x + objectArea.width &&
+            y >= objectArea.y &&
+            y <= objectArea.y + objectArea.height
+          ) {
+            // alert("You found the object!");
+            if (timerRef.current !== null) {
+              clearInterval(timerRef.current); // Stop the timer
+              console.log("timerRef.current:", timerRef.current);
+              const elapsedTimeInSeconds = elapsedTime;
+              console.log("elapsedTimeInSeconds:", elapsedTimeInSeconds);
+              submitScore(timerRef.current);
+            }
+          } else {
+            alert("Try again!");
+          }
+        });
+      }
+
+      function update() {
+        // Any necessary update logic
+      }
+
+      return () => {
+        gameRef.current?.destroy(true);
+        if (timerRef.current !== null) {
+          clearInterval(timerRef.current); // Cleanup the timer on component unmount
         }
-      });
-    }, 1000); // Decrements the countdown every second
-
-    return () => clearInterval(countdownTimer); // Cleanup interval on component unmount
-  }, []);
-
-  useEffect(() => {
-    if (!gameContainerRef.current || !gameActive) return;
-
-    const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      width: 800,
-      height: 600,
-      parent: gameContainerRef.current,
-      scene: {
-        preload,
-        create,
-        update,
-      },
+      };
     };
 
-    const game = new Phaser.Game(config);
-
-    function preload(this: Phaser.Scene) {
-      this.load.image("gameImage", "/puzzle.jpg");
-    }
-
-    function create(this: Phaser.Scene) {
-      const image = this.add.image(400, 300, "gameImage");
-      image.setInteractive();
-
-      const objectArea = { x: 350, y: 250, width: 100, height: 100 };
-
-      // Draw a transparent rectangle over the clickable area
-      const graphics = this.add.graphics();
-      graphics.lineStyle(2, 0xff0000, 1); // Red outline with 2px width
-      graphics.strokeRect(objectArea.x, objectArea.y, objectArea.width, objectArea.height);
-
-      // Start the timer
+    loadGame();
+    if (timerRef.current === 0) {
       timerRef.current = window.setInterval(() => {
         setElapsedTime((prevTime) => prevTime + 1);
       }, 1000);
-
-      this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-        const x = pointer.x;
-        const y = pointer.y;
-
-        if (
-          x >= objectArea.x &&
-          x <= objectArea.x + objectArea.width &&
-          y >= objectArea.y &&
-          y <= objectArea.y + objectArea.height
-        ) {
-          // alert("You found the object!");
-          if (timerRef.current !== null) {
-            clearInterval(timerRef.current); // Stop the timer
-          }
-          checkScoresAndDetermineWinner();
-          setGameActive(false);
-        } else {
-          alert("Try again!");
-        }
-      });
     }
 
-    function update() {
-      // Any necessary update logic
-    }
+  }, [room, player]);
 
+
+  useEffect(() => {
     return () => {
-      game.destroy(true);
-      if (timerRef.current !== null) {
-        clearInterval(timerRef.current); // Cleanup the timer on component unmount
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        // Reset the reference to 0 for future validations
+        timerRef.current = 0;
       }
     };
-  }, [fetchedPlayers, gameActive]);
+  }, []);
+
+  useEffect(() => {
+    const stompClient = new Client({
+      brokerURL: "ws://localhost:8080/ws", // Ensure this matches your actual WebSocket server
+      onConnect: () => {
+        console.log("Connected to WS");
+
+        stompClient.subscribe(`/topic/game/${roomId}/scores`, (message) => {
+          // console.log(message)
+          const update = JSON.parse(message.body);
+
+          // console.log(message.body)
+          // If the received score is better than the current best, update it
+          if (!bestTime || update.score < bestTime) {
+            setBestTime(update.score);
+
+            console.log("update.score:", update.score);
+            console.log("bestTime:", bestTime);
+
+            if (update.playerId === player?.id.toString()) {
+              // This player has the best score
+
+              setWinner(player); // Ensure you have logic to appropriately determine and display the winner
+              // console.log("winner:", winner);
+              // console.log("player:", player);
+              console.log("room?.playerIds:", room?.playerIds);
+
+              const playersScores =
+                room?.playerIds?.map((playerId) => ({
+                  [playerId.toString()]: playerId.toString() === player?.id.toString() ? "1" : "0",
+                })) || [];
+
+              const finishGameProps: FinishGameProps = {
+                roomId,
+                playersScores,
+              };
+              console.log("finishGameProps:", finishGameProps);
+
+              finishGame(finishGameProps, {
+                onSuccess: (data) => {
+                  console.log("Game finished successfully:", data);
+                  // Additional logic upon successful game finish
+                },
+                onError: (error) => {
+                  console.error("Failed to finish the game:", error);
+                  // Error handling logic
+                },
+              });
+            }
+          }
+        });
+      },
+    });
+
+    stompClient.activate();
+
+    return () => {
+      stompClient.deactivate();
+    };
+  }, [roomId, player, bestTime]);
+
+  const submitScore = (score: number) => {
+    if (!myBestTime || score < myBestTime) {
+      setMyBestTime(score);
+      console.log("gameIdSubmit:", room?.gameId);
+      console.log("playerIdSubmit:", player?.id.toString());
+
+      updateScoresMutation.mutate(
+        {
+          gameId: room?.gameId.toString(),
+          playerId: player?.id.toString(),
+          score: score.toString(),
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Score updated successfully", data);
+          },
+          onError: (error) => {
+            console.error("Failed to update score:", error);
+          },
+        }
+      );
+    }
+  };
 
   return (
     <div className="text-2xl font-bold text-white text-center">
       Find Fast Game
-      {countdown > 0 && (
-        <div>Starting in... {countdown}</div>
-      )}
-      {gameActive && (<div ref={gameContainerRef} />)}
-      {gameActive && (
-        <div>Elapsed Time: {elapsedTime} seconds</div>
-      )}
-      {winner && !gameActive && (
+
+      <div ref={gameContainerRef} />
+      {/* Display the timer */}
+      <div className="mt-4">Time: {elapsedTime} seconds</div>
+
+      {winner && (
         <motion.div
           className="text-white text-4xl font-bold mt-4"
           initial={{ opacity: 0, scale: 0.5 }}

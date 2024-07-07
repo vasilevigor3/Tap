@@ -7,6 +7,7 @@ import { Player } from "@/types/Player";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Client } from '@stomp/stompjs';
 
 type RoomPageProps = {
   params: {
@@ -38,7 +39,7 @@ const useRoomStore = create<RoomState>((set) => ({
 
 const useInactivityKicker = () => {
   const INACTIVITY_TIMEOUT_MS = 55000;
-  const { isPlayerReady, roomId } = useRoomStore();
+  const { isPlayerReady, roomId, isGameActive } = useRoomStore();
 
   const { data: player } = api.players.getOrCreate();
   const { mutate: leave } = api.rooms.leave.useMutation();
@@ -46,6 +47,8 @@ const useInactivityKicker = () => {
 
   useEffect(() => {
     if (!player?.id) return;
+    console.log("isPlayerReady", isPlayerReady)
+    console.log("isGameActive", isGameActive)
     if (!isPlayerReady) {
       const timer = setTimeout(() => {
         leave(
@@ -80,7 +83,7 @@ const ReadyButton = () => {
   const onClick = async () => {
     if (!player?.id) return;
     sendReadyToPlay({ gameId, playerId: player.id });
-    setIsPlayerReady(true);
+    // setIsPlayerReady(true);
   };
 
   return (
@@ -92,10 +95,13 @@ const ReadyButton = () => {
 
 const RoomPage = (props: RoomPageProps) => {
   const { roomId } = props.params;
-  const { setRoomId, isPlayerReady, isGameActive, winner } = useRoomStore();
+  const { setRoomId, isPlayerReady, isGameActive, winner, setIsGameActive, setIsPlayerReady } = useRoomStore();
   const { data: user } = api.users.getOrCreate.useQuery();
   const { data: room, isLoading: roomLoading } = api.rooms.getById.useQuery(roomId);
   const { data: player, isLoading: loadingPlayer } = api.players.getOrCreate();
+  const router = useRouter();
+
+  const gameId = room?.gameId;
 
   useEffect(() => {
     setRoomId(roomId);
@@ -103,17 +109,57 @@ const RoomPage = (props: RoomPageProps) => {
 
   useInactivityKicker();
 
+  useEffect(() => {
+    const stompClient = new Client({
+      brokerURL: "http://localhost:8080/ws",
+      onConnect: () => {
+        console.log("Connected");
+
+        stompClient.subscribe(`/topic/roomStatus/${roomId}`, (message) => {
+          const { body } = message;
+          const gameStatus = JSON.parse(body);
+
+          if (gameStatus.status === "ready") {
+            console.log("user pressed ready");
+            setIsGameActive(true);
+
+            if (room?.gameType.toString() == "FF") {
+              router.push(`/game/findFast/${roomId}`);
+            } else if (room?.gameType.toString() == "Roulette") {
+              router.push(`/game/roulette/${roomId}`);
+            } 
+
+          } else if (gameStatus.status === "finished") {
+            console.log("game finished");
+            setIsGameActive(false);
+            setIsPlayerReady(false);
+
+          }
+        });
+      },
+    });
+
+    stompClient.activate();
+
+    return () => {
+      stompClient.deactivate();
+    };
+  }, [roomId, setIsGameActive, setIsPlayerReady, room]);
+
   if (roomLoading) return <div>Loading the room...</div>;
   if (!room) return <div>Room not found</div>;
-  if (!room.isRoomFull)
-    return <div className="text-2xl font-bold text-white text-center">Game has not started yet.</div>;
+  if (!room.isRoomFull) return <div className="text-2xl font-bold text-white text-center">Game has not started yet.</div>;
 
   return (
     <div className="text-2xl font-bold text-white text-center">
-      Find Fast Game
-      <ReadyButton />
-      {isPlayerReady && <div>🎉</div>}
-      {/* Rest of your component logic here */}
+      {!isPlayerReady && !isGameActive && (
+        <div>
+          <ReadyButton />
+        </div>
+      )}
+      {isPlayerReady && !isGameActive && (
+        <div>Waiting for other players...</div>
+      )}
     </div>
   );
 };
