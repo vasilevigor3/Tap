@@ -6,6 +6,7 @@ export type Player = {
   ownedRoomId: string;
   currentRoomId: string;
   wonGamesIds: [];
+  isReadyToPlay: boolean;
 };
 
 export type GameId = string;

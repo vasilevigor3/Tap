@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Phaser from "phaser";
 import { useRouter } from "next/navigation";
 import { api } from "@/app/react-query/routers";
@@ -25,37 +25,28 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
 
   const { data: user } = api.users.getOrCreate.useQuery();
   const { data: player } = api.players.getOrCreate(user?.id);
-  // console.log("user", player?.id);
   const [winner, setWinner] = useState<Player>();
 
   const updateScoresMutation = api.game.updateScoresForCurrentGameAndCurrentPlayer.useMutation();
 
   const { data: room, isLoading: roomLoading } = api.rooms.getById.useQuery(roomId);
-  // console.log("room", room);
-
-
-
 
   const { mutate: finishGame } = api.rooms.finishGame();
 
   const timerRef = useRef<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const startTimeRef = useRef<number>(0);
+  const elapsedTimeRef = useRef<number>(0);
+  const gameEndedRef = useRef<boolean>(false);
+  const [myBestScore, setMyBestScore] = useState<number | null>(null);
+  const [bestScore, setBestScore] = useState<number | null>(null);
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
 
-  const [bestTime, setBestTime] = useState(null);
-  const [myBestTime, setMyBestTime] = useState(0);
-
-
   const gameRef = useRef<Phaser.Game | null>(null);
-  // console.log("gameId1:", room?.gameId.toString());
-  // console.log("playerId1:", player?.id.toString());
-
 
   useEffect(() => {
-    // console.log("gameId2:", room.gameId);
-    // console.log("playerId2:", player?.id.toString());
 
     const loadGame = () => {
       if (!gameContainerRef.current || gameRef.current) return;
@@ -90,6 +81,8 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
         graphics.strokeRect(objectArea.x, objectArea.y, objectArea.width, objectArea.height);
 
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+          if (gameEndedRef.current) return; // Ignore clicks after the game has ended
+
           const x = pointer.x;
           const y = pointer.y;
 
@@ -99,14 +92,12 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
             y >= objectArea.y &&
             y <= objectArea.y + objectArea.height
           ) {
-            // alert("You found the object!");
-            if (timerRef.current !== null) {
-              clearInterval(timerRef.current); // Stop the timer
-              console.log("timerRef.current:", timerRef.current);
-              const elapsedTimeInSeconds = elapsedTime;
-              console.log("elapsedTimeInSeconds:", elapsedTimeInSeconds);
-              submitScore(timerRef.current);
-            }
+            gameEndedRef.current = true; // Mark the game as ended for this player
+            const endTime = performance.now();
+            const elapsedMs = Math.round(endTime - startTimeRef.current);
+            console.log("Elapsed time (ms):", elapsedMs);
+            setElapsedTime(elapsedMs); // Update the final time
+            submitScore(elapsedMs);
           } else {
             alert("Try again!");
           }
@@ -126,11 +117,23 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
     };
 
     loadGame();
-    if (timerRef.current === 0) {
-      timerRef.current = window.setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1);
-      }, 1000);
-    }
+    startTimeRef.current = performance.now();
+
+    const updateTimer = () => {
+      if (gameEndedRef.current) return; // Stop updating if the game has ended for this player
+
+      const currentTime = performance.now();
+      const elapsedMs = Math.round(currentTime - startTimeRef.current);
+      setElapsedTime(elapsedMs);
+      elapsedTimeRef.current = elapsedMs;
+      requestAnimationFrame(updateTimer);
+    };
+
+    const animationFrameId = requestAnimationFrame(updateTimer);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
 
   }, [room, player]);
 
@@ -147,34 +150,24 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
 
   useEffect(() => {
     const stompClient = new Client({
-      brokerURL: "ws://localhost:8080/ws", // Ensure this matches your actual WebSocket server
+      brokerURL: "ws://localhost:8080/ws",
       onConnect: () => {
         console.log("Connected to WS");
 
-        stompClient.subscribe(`/topic/game/${roomId}/scores`, (message) => {
-          // console.log(message)
-          const update = JSON.parse(message.body);
+        const playerScores = new Map<string, number>();
+        let timeoutId: NodeJS.Timeout;
 
-          // console.log(message.body)
-          // If the received score is better than the current best, update it
-          if (!bestTime || update.score < bestTime) {
-            setBestTime(update.score);
+        const determineWinner = () => {
+          if (playerScores.size > 0) {
+            const winningScore = Math.min(...Array.from(playerScores.values()));
+            const winningPlayerId = Array.from(playerScores.entries()).find(([_, score]) => score === winningScore)?.[0];
 
-            console.log("update.score:", update.score);
-            console.log("bestTime:", bestTime);
+            if (winningPlayerId === player?.id.toString()) {
+              setWinner(player);
 
-            if (update.playerId === player?.id.toString()) {
-              // This player has the best score
-
-              setWinner(player); // Ensure you have logic to appropriately determine and display the winner
-              // console.log("winner:", winner);
-              // console.log("player:", player);
-              console.log("room?.playerIds:", room?.playerIds);
-
-              const playersScores =
-                room?.playerIds?.map((playerId) => ({
-                  [playerId.toString()]: playerId.toString() === player?.id.toString() ? "1" : "0",
-                })) || [];
+              const playersScores = room?.playerIds?.map((playerId) => ({
+                [playerId.toString()]: playerId.toString() === winningPlayerId ? "1" : "0",
+              })) || [];
 
               const finishGameProps: FinishGameProps = {
                 roomId,
@@ -185,16 +178,41 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
               finishGame(finishGameProps, {
                 onSuccess: (data) => {
                   console.log("Game finished successfully:", data);
-                  // Additional logic upon successful game finish
                 },
                 onError: (error) => {
                   console.error("Failed to finish the game:", error);
-                  // Error handling logic
                 },
               });
             }
+
+            setBestScore(winningScore);
+          }
+        };
+
+        const subscription = stompClient.subscribe(`/topic/game/${room?.gameId}/scores`, (message) => {
+          const update = JSON.parse(message.body);
+          console.log("update:", update);
+
+          playerScores.set(update.playerId, parseInt(update.score));
+
+          // Clear existing timeout and set a new one
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(determineWinner, 10000); // 10 seconds timeout
+
+          // If all players have submitted, determine winner immediately
+          if (playerScores.size === room?.playerIds?.length) {
+            clearTimeout(timeoutId);
+            determineWinner();
           }
         });
+
+        // Set initial timeout
+        timeoutId = setTimeout(determineWinner, 60000); // 1 minute total game time
+
+        return () => {
+          clearTimeout(timeoutId);
+          subscription.unsubscribe();
+        };
       },
     });
 
@@ -203,13 +221,11 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
     return () => {
       stompClient.deactivate();
     };
-  }, [roomId, player, bestTime]);
+  }, [roomId, player, room, finishGame]);
 
-  const submitScore = (score: number) => {
-    if (!myBestTime || score < myBestTime) {
-      setMyBestTime(score);
-      console.log("gameIdSubmit:", room?.gameId);
-      console.log("playerIdSubmit:", player?.id.toString());
+  const submitScore = useCallback((score: number) => {
+    if (!myBestScore || score < myBestScore) {
+      setMyBestScore(score);
 
       updateScoresMutation.mutate(
         {
@@ -227,7 +243,7 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
         }
       );
     }
-  };
+  }, [myBestScore, room?.gameId, player?.id, updateScoresMutation]);
 
   return (
     <div className="text-2xl font-bold text-white text-center">
@@ -235,7 +251,17 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
 
       <div ref={gameContainerRef} />
       {/* Display the timer */}
-      <div className="mt-4">Time: {elapsedTime} seconds</div>
+      {myBestScore == null && (
+        <div className="mt-4">Time: {(elapsedTime / 1000).toFixed(3)} seconds</div>
+      )}
+
+      {myBestScore !== null && (
+        <div className="mt-2">Your best time: {(myBestScore / 1000).toFixed(3)} seconds</div>
+      )}
+
+      {bestScore !== null && (
+        <div className="mt-2">Best time: {(bestScore / 1000).toFixed(3)} seconds</div>
+      )}
 
       {winner && (
         <motion.div

@@ -37,9 +37,6 @@ export const game = {
         useMutation: (options?: MutationOptions<ScoreDTO, Error, UpdateScoresProps>) =>
             useMutation<ScoreDTO, Error, UpdateScoresProps>({
                 mutationFn: async ({ gameId, playerId, score }: UpdateScoresProps) => {
-                    console.log("gameId:", gameId)
-                    console.log("playerId:", playerId)
-                    console.log("score:", score)
                     const response = await fetch(`${curEnv}/api/updateScoresForCurrentGameAndCurrentPlayer`, {
                         method: "POST",
                         headers: {

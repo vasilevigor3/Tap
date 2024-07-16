@@ -18,28 +18,24 @@ type RoomPageProps = {
 type RoomState = {
   roomId: string;
   isPlayerReady: boolean;
-  isGameActive: boolean;
   winner: Player | undefined;
   setRoomId: (roomId: string) => void;
   setIsPlayerReady: (isReady: boolean) => void;
-  setIsGameActive: (isActive: boolean) => void;
   setWinner: (winner: Player | undefined) => void;
 };
 
 const useRoomStore = create<RoomState>((set) => ({
   roomId: "",
   isPlayerReady: false,
-  isGameActive: false,
   winner: undefined,
   setRoomId: (roomId) => set({ roomId }),
   setIsPlayerReady: (isPlayerReady) => set({ isPlayerReady }),
-  setIsGameActive: (isGameActive) => set({ isGameActive }),
   setWinner: (winner) => set({ winner }),
 }));
 
 const useInactivityKicker = () => {
-  const INACTIVITY_TIMEOUT_MS = 55000;
-  const { isPlayerReady, roomId, isGameActive } = useRoomStore();
+  const INACTIVITY_TIMEOUT_MS = 10000;
+  const { isPlayerReady, roomId } = useRoomStore();
 
   const { data: player } = api.players.getOrCreate();
   const { mutate: leave } = api.rooms.leave.useMutation();
@@ -48,7 +44,6 @@ const useInactivityKicker = () => {
   useEffect(() => {
     if (!player?.id) return;
     console.log("isPlayerReady", isPlayerReady)
-    console.log("isGameActive", isGameActive)
     if (!isPlayerReady) {
       const timer = setTimeout(() => {
         leave(
@@ -74,6 +69,8 @@ const ReadyButton = () => {
   const { data: player } = api.players.getOrCreate();
   const { roomId: gameId, setIsPlayerReady } = useRoomStore();
 
+  console.log("playerFromReadyButton", player)
+
   const { mutateAsync: sendReadyToPlay } = api.game.readyToPlay.useMutation({
     onSuccess: () => {
       setIsPlayerReady(true);
@@ -95,11 +92,15 @@ const ReadyButton = () => {
 
 const RoomPage = (props: RoomPageProps) => {
   const { roomId } = props.params;
-  const { setRoomId, isPlayerReady, isGameActive, winner, setIsGameActive, setIsPlayerReady } = useRoomStore();
+  const { setRoomId, isPlayerReady, winner, setIsPlayerReady } = useRoomStore();
   const { data: user } = api.users.getOrCreate.useQuery();
   const { data: room, isLoading: roomLoading } = api.rooms.getById.useQuery(roomId);
   const { data: player, isLoading: loadingPlayer } = api.players.getOrCreate();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsPlayerReady(player?.isReadyToPlay ?? false);
+  }, [player?.isReadyToPlay, setIsPlayerReady]);
 
   const gameId = room?.gameId;
 
@@ -121,17 +122,15 @@ const RoomPage = (props: RoomPageProps) => {
 
           if (gameStatus.status === "ready") {
             console.log("user pressed ready");
-            setIsGameActive(true);
 
             if (room?.gameType.toString() == "FF") {
               router.push(`/game/findFast/${roomId}`);
             } else if (room?.gameType.toString() == "Roulette") {
               router.push(`/game/roulette/${roomId}`);
-            } 
+            }
 
           } else if (gameStatus.status === "finished") {
             console.log("game finished");
-            setIsGameActive(false);
             setIsPlayerReady(false);
 
           }
@@ -144,7 +143,7 @@ const RoomPage = (props: RoomPageProps) => {
     return () => {
       stompClient.deactivate();
     };
-  }, [roomId, setIsGameActive, setIsPlayerReady, room]);
+  }, [roomId, setIsPlayerReady, room]);
 
   if (roomLoading) return <div>Loading the room...</div>;
   if (!room) return <div>Room not found</div>;
@@ -152,12 +151,13 @@ const RoomPage = (props: RoomPageProps) => {
 
   return (
     <div className="text-2xl font-bold text-white text-center">
-      {!isPlayerReady && !isGameActive && (
+
+      {!isPlayerReady && (
         <div>
           <ReadyButton />
         </div>
       )}
-      {isPlayerReady && !isGameActive && (
+      {isPlayerReady && (
         <div>Waiting for other players...</div>
       )}
     </div>
