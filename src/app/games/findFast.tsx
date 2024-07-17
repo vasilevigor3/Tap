@@ -31,6 +31,11 @@ export const FindFastGame = (findFastProps: FindFastProps) => {
 
   const { data: room, isLoading: roomLoading } = api.rooms.getById.useQuery(roomId);
 
+  // Add a check to prevent users from accessing the page if their current room is not null and does not match the roomId
+  if (player?.currentRoomId !== null && player?.currentRoomId !== roomId) {
+    return <div>You are not allowed to access this page.</div>;
+  }
+
   const { mutate: finishGame } = api.rooms.finishGame();
 
   const timerRef = useRef<number>(0);
